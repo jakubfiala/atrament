@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>atrament.js ~ demo</title>
+		<script src="../dist/atrament.min.js"></script>
+		<style>
+			canvas {
+				width: 100vw;
+				height: 100vh;
+				position: fixed;
+				top: 0;
+				left: 0;
+				z-index: 2;
+			}
+
+			form {
+				z-index: 3;
+				position: fixed;
+				top: 300;
+				left: 100;
+				background: rgba(0, 0, 0, 0.7);
+				padding: 1em;
+				color:white;
+			}
+
+			form * {
+				margin-bottom: 1em;
+			}
+
+			body {
+				background-image: url('http://www.publicdomainpictures.net/download-picture.php?adresar=50000&soubor=notebook-page.jpg');
+				font-family: sans-serif;
+				padding: 1em;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>atrament.js</h1>
+		<form>
+			<button onclick="atrament.clear()">clear</button><br>
+			<label>Thickness</label><br>
+			<input type="range" min="1" max="40" oninput="atrament.weight = parseFloat(event.target.value);" value="2" step="0.1"/><br>
+			<label>Smoothing</label><br>
+			<input type="checkbox" onchange="atrament.smoothing = event.target.checked;" checked><br>
+			<label>Eraser</label>
+			<input type="checkbox" onchange="atrament.mode = event.target.checked ? 'erase' : 'draw';"><br>
+			<label>Colour</label>
+			<input type="color" onchange="atrament.color = event.target.value;"><br>
+			<label>Opacity</label><br>
+			<input type="range" min="0" max="1" onchange="atrament.opacity = parseFloat(event.target.value);" value="1" step="0.05">
+		</form>
+		<canvas></canvas>
+	</body>
+	<script>
+		var atrament = atrament('canvas', window.innerWidth, window.innerHeight);
+	</script>
+</html>

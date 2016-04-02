@@ -2,7 +2,7 @@
 #### Tiny JS library for beautiful drawing and handwriting on the HTML Canvas
 ---
 
-![](/blob/master/demo/img/muchotravka.png)
+![](demo/img/muchotravka.png)
 
 Atrament is a lightweight library that enables the user to draw smooth, natural drawings and handwriting on the HTML canvas. The algorithm was originally developed about 2 weeks after I started learning JavaScript, as I wanted to build a collaborative drawing space on the web, which ended up being [1WALL](http://fiala.uk/1wall). I wanted the drawing to feel natural and comfortable, and the result to be smooth and pleasing. Years later, I've taken the algorithm, improved it, rewrote it in ES6 and made it into a neat little library.
 

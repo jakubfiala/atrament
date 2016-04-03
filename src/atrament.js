@@ -197,7 +197,7 @@ class Atrament {
 		//this means that when the mouse moves fast, there is more smoothing
 		//and when we're drawing small detailed stuff, we have more control
 		//also we hard clip at 1
-		let smoothingFactor = Math.min(1, this._smoothing + (raw_dist - 60) / 3000);
+		let smoothingFactor = Math.min(0.87, this._smoothing + (raw_dist - 60) / 3000);
 
 		//calculate smoothed coordinates
 		mouse.x = mX - (mX - mouse.px) * smoothingFactor;

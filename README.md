@@ -19,13 +19,15 @@ Enjoy!
 ```
 + in your JavaScript, call `atrament` passing in the selector string of your canvas:
 ```js
-var sketcher = atrament('mySketcher');
+var sketcher = atrament('#mySketcher');
 //or use a more object-oriented style
-var sketcher = new Atrament('mySketcher');
+var sketcher = new Atrament('#mySketcher');
+//you can also pass the canvas Node itself
+var sketcher = new Atrament(document.querySelector('#mySketcher'));
 ```
 + you can also pass the width, height and default colour to the function:
 ```js
-var sketcher = atrament('mySketcher', 500, 500, 'orange');
+var sketcher = atrament('#mySketcher', 500, 500, 'orange');
 ```
 + that's it, happy drawing!
 

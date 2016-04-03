@@ -85,7 +85,9 @@ class Atrament {
 		if (!document) throw new Error('no DOM found');
 
 		//get canvas element
-		this.canvas = document.querySelector(selector);
+		if (selector instanceof Node && selector.tagName === 'CANVAS') this.canvas = selector;
+		else if (typeof selector === 'string') this.canvas = document.querySelector(selector);
+		else throw new Error(`can\'t look for canvas based on \'${selector}\'`);
 		if (!this.canvas) throw new Error('canvas not found');
 
 		//set external canvas params
@@ -98,9 +100,14 @@ class Atrament {
 
 		//mousemove handler
 		let mouseMove = (mousePosition) => {
+			mousePosition.preventDefault();
 			//get position
 			let mx, my;
-			if (mousePosition.layerX || mousePosition.layerX == 0) { // Firefox
+			if (mousePosition.changedTouches) { // touchscreens
+				mx = mousePosition.changedTouches[0].pageX - mousePosition.target.offsetLeft;
+				my = mousePosition.changedTouches[0].pageY - mousePosition.target.offsetTop;
+			}
+			else if (mousePosition.layerX || mousePosition.layerX == 0) { // Firefox
 				mx = mousePosition.layerX;
 				my = mousePosition.layerY;
 			}
@@ -121,6 +128,7 @@ class Atrament {
 
 		//mousedown handler
 		let mouseDown = (mousePosition) => {
+			mousePosition.preventDefault();
 			//update position just in case
 			mouseMove(mousePosition);
 			//remember it
@@ -131,7 +139,9 @@ class Atrament {
 			this.context.beginPath();
 			this.context.moveTo(this.mouse.px, this.mouse.py);
 		}
-		let mouseUp = () => { this.mouse.down = false;
+		let mouseUp = (mousePosition) => {
+			mousePosition.preventDefault();
+			this.mouse.down = false;
 			//stop drawing
 			this.context.closePath();
 		}
@@ -140,6 +150,8 @@ class Atrament {
 		this.canvas.addEventListener('mousemove', mouseMove);
 		this.canvas.addEventListener('mousedown', mouseDown);
 		this.canvas.addEventListener('mouseup', mouseUp);
+		this.canvas.addEventListener('touchstart', mouseDown);
+		this.canvas.addEventListener('touchend', mouseUp);
 		this.canvas.addEventListener('touchmove', mouseMove);
 
 		//set internal canvas params

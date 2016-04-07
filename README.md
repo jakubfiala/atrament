@@ -12,7 +12,7 @@ Enjoy!
 
 ## Usage
 
-+ Include the script located at `dist/atrament.min.js` in the `<head>` tag of your HTML.
++ Include the script located at [dist/atrament.min.js](dist/atrament.min.js) in the `<head>` tag of your HTML.
 + create a `<canvas>` tag, e.g.:
 ```html
 <canvas id="mySketcher" width="500px" height="500px">

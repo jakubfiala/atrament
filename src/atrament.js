@@ -202,37 +202,42 @@ class Atrament {
 		];
 	}
 
-	static matchColor(data, pixelPos, compR, compG, compB, compA) {
-		//Pixel color equals comp color?
-		let r = data[pixelPos],
-			g = data[pixelPos+1],
-			b = data[pixelPos+2],
-			a = data[pixelPos+3];
-		return (r == compR && g == compG && b == compB && a == compA);
+	static matchColor(data, compR, compG, compB, compA) {
+		return (pixelPos)=>{
+			//Pixel color equals comp color?
+			let r = data[pixelPos],
+				g = data[pixelPos+1],
+				b = data[pixelPos+2],
+				a = data[pixelPos+3];
+			return (r == compR && g == compG && b == compB && a == compA);
+		}
 	}
 
-	static colorPixel(data, pixelPos, fillColor, startColor, alpha, canvasWidth) {
-		let [fillR, fillG, fillB] = fillColor;
+	static colorPixel(data, fillR, fillG, fillB, startColor, alpha) {
+		let matchColor = Atrament.matchColor(data, ...startColor);
 
-		//Update fill color in matrix
-		data[pixelPos] = fillR;
-		data[pixelPos+1] = fillG;
-		data[pixelPos+2] = fillB;
-		data[pixelPos+3] = alpha;
+		return (pixelPos)=>{
+			//Update fill color in matrix
+			data[pixelPos] = fillR;
+			data[pixelPos+1] = fillG;
+			data[pixelPos+2] = fillB;
+			data[pixelPos+3] = alpha;
 
-		if (!Atrament.matchColor(data, pixelPos + 4, ...startColor)) {
-			data[pixelPos+4] = data[pixelPos+4] * 0.01 + fillR*0.99;
-			data[pixelPos+4+1] = data[pixelPos+4+1] * 0.01 + fillG*0.99;
-			data[pixelPos+4+2] = data[pixelPos+4+2] * 0.01 + fillB*0.99;
-			data[pixelPos+4+3] = data[pixelPos+4+3] * 0.01 + alpha*0.99;
+			if (!matchColor(pixelPos + 4)) {
+				data[pixelPos+4] = data[pixelPos+4] * 0.01 + fillR*0.99;
+				data[pixelPos+4+1] = data[pixelPos+4+1] * 0.01 + fillG*0.99;
+				data[pixelPos+4+2] = data[pixelPos+4+2] * 0.01 + fillB*0.99;
+				data[pixelPos+4+3] = data[pixelPos+4+3] * 0.01 + alpha*0.99;
+			}
+
+			if (!matchColor(pixelPos - 4)) {
+				data[pixelPos-4] = data[pixelPos-4] * 0.01 + fillR*0.99;
+				data[pixelPos-4+1] = data[pixelPos-4+1] * 0.01 + fillG*0.99;
+				data[pixelPos-4+2] = data[pixelPos-4+2] * 0.01 + fillB*0.99;
+				data[pixelPos-4+3] = data[pixelPos-4+3] * 0.01 + alpha*0.99;
+			}
 		}
 
-		if (!Atrament.matchColor(data, pixelPos - 4, ...startColor)) {
-			data[pixelPos-4] = data[pixelPos-4] * 0.01 + fillR*0.99;
-			data[pixelPos-4+1] = data[pixelPos-4+1] * 0.01 + fillG*0.99;
-			data[pixelPos-4+2] = data[pixelPos-4+2] * 0.01 + fillB*0.99;
-			data[pixelPos-4+3] = data[pixelPos-4+3] * 0.01 + alpha*0.99;
-		}
 	}
 
 	draw(mX, mY) {
@@ -382,16 +387,18 @@ class Atrament {
 			fillColor = Atrament.hexToRgb(this.color),
 			//Need to save current context with colors, we will update it
 			colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height),
-			alpha = Math.min(context.globalAlpha * 10 * 255, 255);
+			alpha = Math.min(context.globalAlpha * 10 * 255, 255),
+			colorPixel = Atrament.colorPixel(colorLayer.data, ...fillColor, startColor, alpha),
+			matchColor = Atrament.matchColor(colorLayer.data, ...startColor);
 
-		while(pixelStack.length)
-		{
+
+		while(pixelStack.length) {
 			let newPos = pixelStack.pop();
 			let [x,y] = newPos;
 
 			let pixelPos = (y*canvasWidth + x) * 4;
 
-			while(y-- >= 0 && Atrament.matchColor(colorLayer.data, pixelPos, ...startColor))
+			while(y-- >= 0 && matchColor(pixelPos))
 			{
 				pixelPos -= canvasWidth * 4;
 			}
@@ -402,13 +409,13 @@ class Atrament {
 			let reachLeft = false;
 			let reachRight = false;
 
-			while(y++ < canvasHeight-1 && Atrament.matchColor(colorLayer.data, pixelPos, ...startColor))
+			while(y++ < canvasHeight-1 && matchColor(pixelPos))
 			{
-				Atrament.colorPixel(colorLayer.data, pixelPos, fillColor, startColor, alpha, canvasWidth);
+				colorPixel(pixelPos);
 
 				if(x > 0)
 				{
-					if(Atrament.matchColor(colorLayer.data, pixelPos - 4, ...startColor))
+					if(matchColor(pixelPos - 4))
 					{
 						if(!reachLeft){
 							pixelStack.push([x - 1, y]);
@@ -423,7 +430,7 @@ class Atrament {
 
 				if(x < canvasWidth-1)
 				{
-					if(Atrament.matchColor(colorLayer.data, pixelPos + 4, ...startColor))
+					if(matchColor(pixelPos + 4))
 					{
 						if(!reachRight)
 						{

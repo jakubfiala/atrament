@@ -131,6 +131,11 @@ class Atrament {
 			mousePosition.preventDefault();
 			//update position just in case
 			mouseMove(mousePosition);
+			//if we are filling - fill and return
+			if(this._filling){
+				this.fillContext();
+				return;
+			}
 			//remember it
 			this.mouse.px = this.mouse.x;
 			this.mouse.py = this.mouse.y;
@@ -162,6 +167,10 @@ class Atrament {
 		this.context.lineCap = 'round';
 		this.context.lineJoin = 'round';
 
+		//Need to reset to some default state since it blocks from correct getImageData
+		this.context.fillStyle = "rgb(255,255,255)";
+		this.context.fillRect(0,0,width,height);
+
 		//set drawing params
 		this.SMOOTHING_INIT = 0.85;
 		this.WEIGHT_SPREAD = 10;
@@ -184,6 +193,13 @@ class Atrament {
 	    ys = ys * ys;
 
 	    return Math.sqrt( xs + ys );
+	}
+
+	fillContext(){
+		let mouse = this.mouse;
+		let context = this.context;
+		let [startR, startG, startB] = context.getImageData(mouse.x, mouse.y, 1, 1).data;
+		this.floodFill(mouse.x, mouse.y, startR, startG, startB);
 	}
 
 	draw(mX, mY) {
@@ -257,6 +273,14 @@ class Atrament {
 		this.context.globalCompositeOperation = m === 'erase' ? 'destination-out' : 'source-over';
 	}
 
+	get fill() {
+		return this._filling || false;
+	}
+
+	set fill(value) {
+		return this._filling = value;
+	}
+
 	get smoothing() {
 		return this._smoothing === this.SMOOTHING_INIT;
 	}
@@ -291,6 +315,102 @@ class Atrament {
 		return this.canvas.toDataURL();
 	}
 
+	floodFill(startX, startY, startR, startG, startB){
+		let context = this.context,
+			canvasWidth = context.canvas.width,
+			canvasHeight = context.canvas.height,
+			pixelStack = [[startX, startY]],
+			//hex needs to be trasformed to rgb since colorLayer accepts RGB
+			[fillR, fillG, fillB] = hexToRgb(this.color),
+			//Need to save current context with colors, we will update it
+			colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+
+		while(pixelStack.length)
+		{
+			let newPos = pixelStack.pop();
+			let [x,y] = newPos;
+			let pixelPos = (y*canvasWidth + x) * 4;
+
+			while(y-- >= 0 && matchStartColor(pixelPos))
+			{
+				pixelPos -= canvasWidth * 4;
+			}
+			pixelPos += canvasWidth * 4;
+			++y;
+			let reachLeft = false;
+			let reachRight = false;
+			while(y++ < canvasHeight-1 && matchStartColor(pixelPos))
+			{
+				colorPixel(pixelPos, fillR, fillG, fillB);
+
+				if(x > 0)
+				{
+					if(matchStartColor(pixelPos - 4))
+					{
+						if(!reachLeft){
+							pixelStack.push([x - 1, y]);
+							reachLeft = true;
+						}
+					}
+					else if(reachLeft)
+					{
+						reachLeft = false;
+					}
+				}
+
+				if(x < canvasWidth-1)
+				{
+					if(matchStartColor(pixelPos + 4))
+					{
+						if(!reachRight)
+						{
+							pixelStack.push([x + 1, y]);
+							reachRight = true;
+						}
+					}
+					else if(reachRight)
+					{
+						reachRight = false;
+					}
+				}
+
+				pixelPos += canvasWidth * 4;
+			}
+		}
+
+		//Update context with filled bucket!
+		context.putImageData(colorLayer, 0, 0);
+
+		//Since input type color provides hex and ImageData accepts RGB need to transform
+		function hexToRgb(hexColor){
+			var m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+			return [
+				parseInt(m[1], 16),
+				parseInt(m[2], 16),
+				parseInt(m[3], 16)
+			];
+		}
+
+		//Next pixel color equals start?
+		function matchStartColor(pixelPos)
+		{
+			let r = colorLayer.data[pixelPos],
+				g = colorLayer.data[pixelPos+1],
+				b = colorLayer.data[pixelPos+2];
+
+			return (r == startR && g == startG && b == startB);
+		}
+
+		//Update fill color in matrix
+		function colorPixel(pixelPos, fillR, fillG, fillB)
+		{
+			colorLayer.data[pixelPos] = fillR;
+			colorLayer.data[pixelPos+1] = fillG;
+			colorLayer.data[pixelPos+2] = fillB;
+			colorLayer.data[pixelPos+3] = 255;
+		}
+
+	}
 
 }
 

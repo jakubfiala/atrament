@@ -6,9 +6,8 @@
   "scripts": {
     "prepublish": "babel src --presets es2015 -d lib/",
     "test": "jasmine",
-    "build": "babel src --presets es2015 | uglifyjs - --o dist/atrament.min.js",
     "buildDemo": "webpack --config demo/bundled/webpack.config.js",
-    "webpackBuild": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",

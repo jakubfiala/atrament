@@ -2,5 +2,4 @@ node_modules
 npm
 uglifyjs
 dev-demo
-lib
 .DS_STORE

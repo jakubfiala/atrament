@@ -2,7 +2,7 @@
   "name": "atrament",
   "version": "0.1.0",
   "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
-  "main": "index.js",
+  "main": "lib/atrament.js",
   "scripts": {
     "prepublish": "babel src --presets es2015 -d lib/",
     "test": "jasmine",

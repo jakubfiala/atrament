@@ -13,10 +13,6 @@ Enjoy!
 ## Usage
 
 + Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
-+ Alternatively, if you're using a bundling tool like browserify or webpack, you can include it as a module, e.g.:
-```
-var atrament = require('atrament');
-```
 + create a `<canvas>` tag, e.g.:
 ```html
 <canvas id="mySketcher" width="500px" height="500px">

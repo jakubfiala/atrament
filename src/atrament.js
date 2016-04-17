@@ -467,3 +467,6 @@ class Atrament {
 function atrament(selector, width, height, color) {
 	return new Atrament(selector, width, height, color);
 }
+
+module.exports = atrament;
+module.exports.Atrament = Atrament;

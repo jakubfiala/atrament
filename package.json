@@ -2,10 +2,12 @@
   "name": "atrament",
   "version": "0.1.0",
   "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
-  "main": "index.js",
+  "main": "lib/atrament.js",
   "scripts": {
+    "prepublish": "babel src --presets es2015 -d lib/",
     "test": "jasmine",
-    "build": "babel src --presets es2015 | uglifyjs - --o dist/atrament.min.js"
+    "buildDemo": "webpack --config demo/bundled/webpack.config.js",
+    "build": "webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -26,7 +28,9 @@
   "devDependencies": {
     "babel": "^6.5.2",
     "babel-cli": "^6.6.5",
+    "babel-loader": "^6.2.4",
     "babel-preset-es2015": "^6.6.0",
-    "uglify-js": "^2.6.2"
+    "uglify-js": "^2.6.2",
+    "webpack": "^1.12.15"
   }
 }

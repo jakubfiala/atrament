@@ -10,9 +10,22 @@ Atrament is a lightweight library that enables the user to draw smooth, natural 
 
 Enjoy!
 
+## Installation
+
+#### script tag
+
+Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
+
+#### npm
+
+If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
+
++ install atrament as a dependency using ```npm install --save atrament```.
++ require the package in a module using ```var atrament = require('atrament');```
++ You can also access the Atrament class using ```var Atrament = require('atrament').Atrament;```
+
 ## Usage
 
-+ Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
 + create a `<canvas>` tag, e.g.:
 ```html
 <canvas id="mySketcher" width="500px" height="500px">
@@ -31,13 +44,6 @@ var sketcher = atrament('#mySketcher', 500, 500, 'orange');
 ```
 + that's it, happy drawing!
 
-## NPM Installation
-
-If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
-
-+ install atrament as a dependency using ```npm install --save atrament```.
-+ require the package in a module using ```var atrament = require('atrament');```
-+ You can also access the Atrament class using ```var Atrament = require('atrament').Atrament;```
 
 ## Options & config
 
@@ -53,10 +59,11 @@ sketcher.weight = 20; //in pixels
 ```js
 sketcher.colour = `#ff485e`; //just like CSS
 ```
-+ toggle the Erase mode:
++ toggle between modes:
 ```js
-sketcher.mode = `erase`;
-sketcher.mode = `draw`;
+sketcher.mode = `erase`; 	// eraser tool
+sketcher.mode = `fill`; 	// click to fill area
+sketcher.mode = `draw`; 	// default
 ```
 + toggle smoothing - having it on makes the drawings look much better, turning it off makes it feel a bit more responsive:
 ```js

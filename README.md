@@ -31,6 +31,14 @@ var sketcher = atrament('#mySketcher', 500, 500, 'orange');
 ```
 + that's it, happy drawing!
 
+## NPM Installation
+
+If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
+
++ install atrament as a dependency using ```npm install --save atrament```.
++ require the package in a module using ```var atrament = require('atrament');```
++ You can also access the Atrament class using ```var Atrament = require('atrament').Atrament;```
+
 ## Options & config
 
 + clear the canvas:

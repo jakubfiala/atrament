@@ -80,6 +80,7 @@ class Mouse extends Point {
 
 }
 
+
 class Atrament {
 	constructor(selector, width, height, color) {
 		if (!document) throw new Error('no DOM found');
@@ -131,6 +132,13 @@ class Atrament {
 			mousePosition.preventDefault();
 			//update position just in case
 			mouseMove(mousePosition);
+
+			//if we are filling - fill and return
+			if(this._mode == 'fill'){
+				this.fill();
+				return;
+			}
+
 			//remember it
 			this.mouse.px = this.mouse.x;
 			this.mouse.py = this.mouse.y;
@@ -161,6 +169,10 @@ class Atrament {
 		this.context.strokeStyle = color ? color : 'black';
 		this.context.lineCap = 'round';
 		this.context.lineJoin = 'round';
+		this.context.translate(0.5, 0.5);
+
+		this._filling = false;
+		this._fillStack = [];
 
 		//set drawing params
 		this.SMOOTHING_INIT = 0.85;
@@ -170,20 +182,62 @@ class Atrament {
 		this._thickness = 2;
 		this._targetThickness = 2;
 		this._weight = 2;
+		this._mode = 'draw';
 	}
 
 	static lineDistance(x1, y1, x2, y2) {
 		//calculate euclidean distance between (x1, y1) and (x2, y2)
-		var xs = 0;
-	    var ys = 0;
-
-	    xs = x2 - x1;
-	    xs = xs * xs;
-
-	    ys = y2 - y1;
-	    ys = ys * ys;
-
+	    let xs = Math.pow(x2 - x1, 2);
+		let ys = Math.pow(y2 - y1, 2);
 	    return Math.sqrt( xs + ys );
+	}
+
+	static hexToRgb(hexColor){
+		//Since input type color provides hex and ImageData accepts RGB need to transform
+		let m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+		return [
+			parseInt(m[1], 16),
+			parseInt(m[2], 16),
+			parseInt(m[3], 16)
+		];
+	}
+
+	static matchColor(data, compR, compG, compB, compA) {
+		return (pixelPos)=>{
+			//Pixel color equals comp color?
+			let r = data[pixelPos],
+				g = data[pixelPos+1],
+				b = data[pixelPos+2],
+				a = data[pixelPos+3];
+			return (r == compR && g == compG && b == compB && a == compA);
+		}
+	}
+
+	static colorPixel(data, fillR, fillG, fillB, startColor, alpha) {
+		let matchColor = Atrament.matchColor(data, ...startColor);
+
+		return (pixelPos)=>{
+			//Update fill color in matrix
+			data[pixelPos] = fillR;
+			data[pixelPos+1] = fillG;
+			data[pixelPos+2] = fillB;
+			data[pixelPos+3] = alpha;
+
+			if (!matchColor(pixelPos + 4)) {
+				data[pixelPos+4] = data[pixelPos+4] * 0.01 + fillR*0.99;
+				data[pixelPos+4+1] = data[pixelPos+4+1] * 0.01 + fillG*0.99;
+				data[pixelPos+4+2] = data[pixelPos+4+2] * 0.01 + fillB*0.99;
+				data[pixelPos+4+3] = data[pixelPos+4+3] * 0.01 + alpha*0.99;
+			}
+
+			if (!matchColor(pixelPos - 4)) {
+				data[pixelPos-4] = data[pixelPos-4] * 0.01 + fillR*0.99;
+				data[pixelPos-4+1] = data[pixelPos-4+1] * 0.01 + fillG*0.99;
+				data[pixelPos-4+2] = data[pixelPos-4+2] * 0.01 + fillB*0.99;
+				data[pixelPos-4+3] = data[pixelPos-4+3] * 0.01 + alpha*0.99;
+			}
+		}
+
 	}
 
 	draw(mX, mY) {
@@ -249,12 +303,25 @@ class Atrament {
 	}
 
 	get mode() {
-		return this.context.globalCompositeOperation === 'destination-out' ? 'erase' : 'draw';
+		return this._mode;
 	}
 
 	set mode(m) {
 		if (typeof m !== 'string') throw new Error('wrong argument type');
-		this.context.globalCompositeOperation = m === 'erase' ? 'destination-out' : 'source-over';
+		switch (m) {
+			case 'erase':
+				this._mode = 'erase';
+				this.context.globalCompositeOperation = 'destination-out';
+				break;
+			case 'fill':
+				this._mode = 'fill';
+				this.context.globalCompositeOperation = 'source-over';
+				break;
+			default:
+				this._mode = 'draw';
+				this.context.globalCompositeOperation = 'source-over';
+				break;
+		}
 	}
 
 	get smoothing() {
@@ -291,6 +358,108 @@ class Atrament {
 		return this.canvas.toDataURL();
 	}
 
+	fill(){
+		let mouse = this.mouse;
+		let context = this.context;
+		let startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data,0); //converting to Array because Safari 9
+
+		if (!this._filling) {
+			this.canvas.style.cursor = 'progress';
+			this._filling = true;
+
+			setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, 100);
+		}
+		else {
+			this._fillStack.push([
+				mouse.x,
+				mouse.y,
+				startColor
+			]);
+		}
+	}
+
+	_floodFill(startX, startY, startColor){
+		let context = this.context,
+			canvasWidth = context.canvas.width,
+			canvasHeight = context.canvas.height,
+			pixelStack = [[startX, startY]],
+			//hex needs to be trasformed to rgb since colorLayer accepts RGB
+			fillColor = Atrament.hexToRgb(this.color),
+			//Need to save current context with colors, we will update it
+			colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height),
+			alpha = Math.min(context.globalAlpha * 10 * 255, 255),
+			colorPixel = Atrament.colorPixel(colorLayer.data, ...fillColor, startColor, alpha),
+			matchColor = Atrament.matchColor(colorLayer.data, ...startColor);
+
+
+		while(pixelStack.length) {
+			let newPos = pixelStack.pop();
+			let [x,y] = newPos;
+
+			let pixelPos = (y*canvasWidth + x) * 4;
+
+			while(y-- >= 0 && matchColor(pixelPos))
+			{
+				pixelPos -= canvasWidth * 4;
+			}
+			pixelPos += canvasWidth * 4;
+
+			++y;
+
+			let reachLeft = false;
+			let reachRight = false;
+
+			while(y++ < canvasHeight-1 && matchColor(pixelPos))
+			{
+				colorPixel(pixelPos);
+
+				if(x > 0)
+				{
+					if(matchColor(pixelPos - 4))
+					{
+						if(!reachLeft){
+							pixelStack.push([x - 1, y]);
+							reachLeft = true;
+						}
+					}
+					else if(reachLeft)
+					{
+						reachLeft = false;
+					}
+				}
+
+				if(x < canvasWidth-1)
+				{
+					if(matchColor(pixelPos + 4))
+					{
+						if(!reachRight)
+						{
+							pixelStack.push([x + 1, y]);
+							reachRight = true;
+						}
+					}
+					else if(reachRight)
+					{
+						reachRight = false;
+					}
+				}
+
+				pixelPos += canvasWidth * 4;
+			}
+		}
+
+		//Update context with filled bucket!
+		context.putImageData(colorLayer, 0, 0);
+
+		if (this._fillStack.length) {
+			this._floodFill(...this._fillStack.shift());
+		}
+		else {
+			this._filling = false;
+			setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+		}
+
+	}
 
 }
 

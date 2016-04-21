@@ -16,13 +16,19 @@ Enjoy!
 
 Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
 
-#### npm
+Alternatively, you can use Bower: `bower install atrament` and include `bower_components/atrament/dist/atrament.min.js` as a script tag.
+
+#### as a module
 
 If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
 
 + install atrament as a dependency using ```npm install --save atrament```.
 + require the package in a module using ```var atrament = require('atrament');```
 + You can also access the Atrament class using ```var Atrament = require('atrament').Atrament;```
+
+#### polymer
+
+Thanks to [rubenstolk](https://github.com/rubenstolk), you can also use the [sc-atrament](https://github.com/safetychanger/sc-atrament) Polymer element.
 
 ## Usage
 

@@ -63,9 +63,9 @@ sketcher.clear();
 ```js
 sketcher.weight = 20; //in pixels
 ```
-+ change the colour:
++ change the color:
 ```js
-sketcher.colour = `#ff485e`; //just like CSS
+sketcher.color = `#ff485e`; //just like CSS
 ```
 + toggle between modes:
 ```js

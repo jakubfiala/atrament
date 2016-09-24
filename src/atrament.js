@@ -100,30 +100,27 @@ class Atrament {
 		this.mouse = new Mouse();
 
 		//mousemove handler
-		let mouseMove = (mousePosition) => {
-			mousePosition.preventDefault();
-			//get position
-			let mx, my;
-			if (mousePosition.changedTouches) { // touchscreens
-				mx = mousePosition.changedTouches[0].pageX - mousePosition.target.offsetLeft;
-				my = mousePosition.changedTouches[0].pageY - mousePosition.target.offsetTop;
+		let mouseMove = e => {
+			e.preventDefault();
+
+			const position = e.changedTouches && e.changedTouches[0] || e;
+			let x = position.offsetX;
+			let y = position.offsetY;
+
+			if (typeof x === 'undefined') {
+				x = position.clientX + document.documentElement.scrollTop;
 			}
-			else if (mousePosition.layerX || mousePosition.layerX == 0) { // Firefox
-				mx = mousePosition.layerX;
-				my = mousePosition.layerY;
+			if (typeof y === 'undefined') {
+				y = position.clientY + document.documentElement.scrollTop;
 			}
-			else if (mousePosition.offsetX || mousePosition.offsetX == 0) { // Opera
-				mx = mousePosition.offsetX;
-				my = mousePosition.offsetY;
-			};
+
 			//draw if we should draw
 			if (this.mouse.down) {
-				this.draw(mx, my);
+				this.draw(x, y);
 			}
-			//if not, just update position
 			else {
-				this.mouse.x = mx;
-				this.mouse.y = my;
+				this.mouse.x = x;
+				this.mouse.y = y;
 			}
 		}
 
@@ -134,7 +131,7 @@ class Atrament {
 			mouseMove(mousePosition);
 
 			//if we are filling - fill and return
-			if(this._mode == 'fill'){
+			if(this._mode === 'fill'){
 				this.fill();
 				return;
 			}
@@ -209,7 +206,7 @@ class Atrament {
 				g = data[pixelPos+1],
 				b = data[pixelPos+2],
 				a = data[pixelPos+3];
-			return (r == compR && g == compG && b == compB && a == compA);
+			return (r === compR && g === compG && b === compB && a === compA);
 		}
 	}
 

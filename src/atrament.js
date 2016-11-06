@@ -169,6 +169,17 @@ class Atrament {
 		this.canvas.addEventListener('touchend', mouseUp);
 		this.canvas.addEventListener('touchmove', mouseMove);
 
+		//helper for destroying Atrament (removing event listeners)
+		this.destroy = () => {
+			this.clear();
+			this.canvas.removeEventListener('mousemove', mouseMove);
+			this.canvas.removeEventListener('mousedown', mouseDown);
+			this.canvas.removeEventListener('mouseup', mouseUp);
+			this.canvas.removeEventListener('touchstart', mouseDown);
+			this.canvas.removeEventListener('touchend', mouseUp);
+			this.canvas.removeEventListener('touchmove', mouseMove);
+		};
+
 		//set internal canvas params
 		this.context = this.canvas.getContext('2d');
 		this.context.globalCompositeOperation = 'source-over';

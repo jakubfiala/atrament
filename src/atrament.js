@@ -99,12 +99,6 @@ class Atrament {
 		//create a mouse object
 		this.mouse = new Mouse();
 
-		const fireDirty = () => {
-			const event = document.createEvent('Event');
-			event.initEvent('dirty', true, true);
-			this.canvas.dispatchEvent(event);
-		};
-
 		//mousemove handler
 		let mouseMove = e => {
 			e.preventDefault();
@@ -125,7 +119,7 @@ class Atrament {
 				this.draw(x, y);
 				if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
 					this._dirty = true;
-					fireDirty();
+					this.fireDirty();
 				}
 			}
 			else {
@@ -364,22 +358,28 @@ class Atrament {
 		else this.context.globalAlpha = o/10;
 	}
 
+	fireDirty() {
+		const event = document.createEvent('Event');
+		event.initEvent('dirty', true, true);
+		this.canvas.dispatchEvent(event);
+	}
+
 	clear() {
 		if (!this.dirty) {
 			return;
 		}
 
 		this._dirty = false;
-		fireDirty();
+		this.fireDirty();
 
 		//make sure we're in the right compositing mode, and erase everything
 		if (this.context.globalCompositeOperation === 'destination-out') {
 			this.mode = 'draw';
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
 			this.mode = 'erase';
 		}
 		else {
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
 		}
 	}
 

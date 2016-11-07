@@ -158,7 +158,7 @@ class Atrament {
 		//attach listeners
 		this.canvas.addEventListener('mousemove', mouseMove);
 		this.canvas.addEventListener('mousedown', mouseDown);
-		this.canvas.addEventListener('mouseup', mouseUp);
+		document.addEventListener('mouseup', mouseUp);
 		this.canvas.addEventListener('touchstart', mouseDown);
 		this.canvas.addEventListener('touchend', mouseUp);
 		this.canvas.addEventListener('touchmove', mouseMove);
@@ -168,7 +168,7 @@ class Atrament {
 			this.clear();
 			this.canvas.removeEventListener('mousemove', mouseMove);
 			this.canvas.removeEventListener('mousedown', mouseDown);
-			this.canvas.removeEventListener('mouseup', mouseUp);
+			document.removeEventListener('mouseup', mouseUp);
 			this.canvas.removeEventListener('touchstart', mouseDown);
 			this.canvas.removeEventListener('touchend', mouseUp);
 			this.canvas.removeEventListener('touchmove', mouseMove);

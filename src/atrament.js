@@ -117,6 +117,10 @@ class Atrament {
 			//draw if we should draw
 			if (this.mouse.down) {
 				this.draw(x, y);
+				if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
+					this._dirty = true;
+					this.fireDirty();
+				}
 			}
 			else {
 				this.mouse.x = x;
@@ -154,10 +158,21 @@ class Atrament {
 		//attach listeners
 		this.canvas.addEventListener('mousemove', mouseMove);
 		this.canvas.addEventListener('mousedown', mouseDown);
-		this.canvas.addEventListener('mouseup', mouseUp);
+		document.addEventListener('mouseup', mouseUp);
 		this.canvas.addEventListener('touchstart', mouseDown);
 		this.canvas.addEventListener('touchend', mouseUp);
 		this.canvas.addEventListener('touchmove', mouseMove);
+
+		//helper for destroying Atrament (removing event listeners)
+		this.destroy = () => {
+			this.clear();
+			this.canvas.removeEventListener('mousemove', mouseMove);
+			this.canvas.removeEventListener('mousedown', mouseDown);
+			document.removeEventListener('mouseup', mouseUp);
+			this.canvas.removeEventListener('touchstart', mouseDown);
+			this.canvas.removeEventListener('touchend', mouseUp);
+			this.canvas.removeEventListener('touchmove', mouseMove);
+		};
 
 		//set internal canvas params
 		this.context = this.canvas.getContext('2d');
@@ -303,6 +318,10 @@ class Atrament {
 		return this._mode;
 	}
 
+	get dirty() {
+		return !!this._dirty;
+	}
+
 	set mode(m) {
 		if (typeof m !== 'string') throw new Error('wrong argument type');
 		switch (m) {
@@ -339,15 +358,28 @@ class Atrament {
 		else this.context.globalAlpha = o/10;
 	}
 
+	fireDirty() {
+		const event = document.createEvent('Event');
+		event.initEvent('dirty', true, true);
+		this.canvas.dispatchEvent(event);
+	}
+
 	clear() {
+		if (!this.dirty) {
+			return;
+		}
+
+		this._dirty = false;
+		this.fireDirty();
+
 		//make sure we're in the right compositing mode, and erase everything
 		if (this.context.globalCompositeOperation === 'destination-out') {
 			this.mode = 'draw';
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
 			this.mode = 'erase';
 		}
 		else {
-			this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
 		}
 	}
 

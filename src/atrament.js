@@ -103,15 +103,16 @@ class Atrament {
 		let mouseMove = e => {
 			e.preventDefault();
 
+			const rect = this.canvas.getBoundingClientRect();
 			const position = e.changedTouches && e.changedTouches[0] || e;
 			let x = position.offsetX;
 			let y = position.offsetY;
 
 			if (typeof x === 'undefined') {
-				x = position.clientX + document.documentElement.scrollTop;
+				x = position.clientX + document.documentElement.scrollLeft - rect.left;
 			}
 			if (typeof y === 'undefined') {
-				y = position.clientY + document.documentElement.scrollTop;
+				y = position.clientY + document.documentElement.scrollTop - rect.top;
 			}
 
 			//draw if we should draw

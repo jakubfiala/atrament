@@ -7,6 +7,7 @@
     "prepublish": "npm run node-compile",
     "node-compile": "babel src --presets es2015 -d lib/",
     "build": "webpack --config webpack.config.js",
+    "watch": "webpack --config webpack.config.js --watch",
     "test": "jasmine"
   },
   "repository": {

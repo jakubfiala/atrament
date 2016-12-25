@@ -150,7 +150,6 @@ class Atrament {
 			this.context.moveTo(this.mouse.px, this.mouse.py);
 		}
 		let mouseUp = (mousePosition) => {
-			mousePosition.preventDefault();
 			this.mouse.down = false;
 			//stop drawing
 			this.context.closePath();
@@ -179,7 +178,7 @@ class Atrament {
 		this.context = this.canvas.getContext('2d');
 		this.context.globalCompositeOperation = 'source-over';
 		this.context.globalAlpha = 1;
-		this.context.strokeStyle = color ? color : 'black';
+		this.context.strokeStyle = color ? color : 'rgba(0,0,0,1)';
 		this.context.lineCap = 'round';
 		this.context.lineJoin = 'round';
 		this.context.translate(0.5, 0.5);
@@ -222,6 +221,7 @@ class Atrament {
 				g = data[pixelPos+1],
 				b = data[pixelPos+2],
 				a = data[pixelPos+3];
+
 			return (r === compR && g === compG && b === compB && a === compA);
 		}
 	}
@@ -421,6 +421,13 @@ class Atrament {
 			colorPixel = Atrament.colorPixel(colorLayer.data, ...fillColor, startColor, alpha),
 			matchColor = Atrament.matchColor(colorLayer.data, ...startColor);
 
+		const matchFillColor = Atrament.matchColor(colorLayer.data, ...[...fillColor, 255]);
+		// check if we're trying to fill with the same colour, if so, stop
+		if (matchFillColor((startY*context.canvas.width + startX) * 4)) {
+			this._filling = false;
+			setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+			return;
+		}
 
 		while(pixelStack.length) {
 			let newPos = pixelStack.pop();

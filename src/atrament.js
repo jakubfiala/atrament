@@ -150,7 +150,6 @@ class Atrament {
 			this.context.moveTo(this.mouse.px, this.mouse.py);
 		}
 		let mouseUp = (mousePosition) => {
-			mousePosition.preventDefault();
 			this.mouse.down = false;
 			//stop drawing
 			this.context.closePath();

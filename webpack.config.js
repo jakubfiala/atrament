@@ -14,17 +14,17 @@ module.exports = {
         new webpack.optimize.UglifyJsPlugin({
             sourceMap: true,
             compress: {
-                warnings: false,
-            },
-        }),
+                warnings: false
+            }
+        })
     ],
     module: {
         loaders: [
             {
                 test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
-                loaders: ['babel?presets[]=es2015', 'eslint?fix=true'],
+                loaders: ['babel?presets[]=es2015', 'eslint?fix=true']
             }
-        ],
+        ]
     }
 };

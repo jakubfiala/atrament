@@ -1,7 +1,10 @@
 // make a class for Point
 class Point {
   constructor(x, y) {
-    if (arguments.length < 2) throw new Error('not enough coordinates for Point.');
+    if (typeof x === 'undefined' || typeof y === 'undefined') {
+      throw new Error('not enough coordinates for Point.');
+    }
+
     this._x = x;
     this._y = y;
   }
@@ -23,7 +26,10 @@ class Point {
   }
 
   set(x, y) {
-    if (arguments.length < 2) throw new Error('not enough coordinates for Point.set');
+    if (typeof x === 'undefined' || typeof y === 'undefined') {
+      throw new Error('not enough coordinates for Point.set');
+    }
+
     this._x = x;
     this._y = y;
   }
@@ -99,7 +105,7 @@ class Atrament {
     this.mouse = new Mouse();
 
     // mousemove handler
-    let mouseMove = e => {
+    const mouseMove = e => {
       e.preventDefault();
 
       const rect = this.canvas.getBoundingClientRect();
@@ -121,14 +127,15 @@ class Atrament {
           this._dirty = true;
           this.fireDirty();
         }
-      } else {
+      }
+      else {
         this.mouse.x = x;
         this.mouse.y = y;
       }
     };
 
     // mousedown handler
-    let mouseDown = (mousePosition) => {
+    const mouseDown = (mousePosition) => {
       mousePosition.preventDefault();
       // update position just in case
       mouseMove(mousePosition);
@@ -147,7 +154,8 @@ class Atrament {
       this.context.beginPath();
       this.context.moveTo(this.mouse.px, this.mouse.py);
     };
-    let mouseUp = (mousePosition) => {
+
+    const mouseUp = () => {
       this.mouse.down = false;
       // stop drawing
       this.context.closePath();
@@ -161,7 +169,7 @@ class Atrament {
     this.canvas.addEventListener('touchend', mouseUp);
     this.canvas.addEventListener('touchmove', mouseMove);
 
-    // helper for destroying Atrament (removing event listeners)
+    // helper for destroying Atrament(removing event listeners)
     this.destroy = () => {
       this.clear();
       this.canvas.removeEventListener('mousemove', mouseMove);
@@ -196,15 +204,17 @@ class Atrament {
   }
 
   static lineDistance(x1, y1, x2, y2) {
-    // calculate euclidean distance between (x1, y1) and (x2, y2)
-    let xs = Math.pow(x2 - x1, 2);
-    let ys = Math.pow(y2 - y1, 2);
+    // calculate euclidean distance between(x1, y1) and(x2, y2)
+    const xs = Math.pow(x2 - x1, 2);
+    const ys = Math.pow(y2 - y1, 2);
+
     return Math.sqrt(xs + ys);
   }
 
   static hexToRgb(hexColor) {
     // Since input type color provides hex and ImageData accepts RGB need to transform
-    let m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+    const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+
     return [
       parseInt(m[1], 16),
       parseInt(m[2], 16),
@@ -225,7 +235,7 @@ class Atrament {
   }
 
   static colorPixel(data, fillR, fillG, fillB, startColor, alpha) {
-    let matchColor = Atrament.matchColor(data, ...startColor);
+    const matchColor = Atrament.matchColor(data, ...startColor);
 
     return (pixelPos) => {
       // Update fill color in matrix
@@ -251,31 +261,32 @@ class Atrament {
   }
 
   draw(mX, mY) {
-    let mouse = this.mouse;
-    let context = this.context;
+    const mouse = this.mouse;
+    const context = this.context;
 
     // calculate distance from previous point
-    let rawDist = Atrament.lineDistance(mX, mY, mouse.px, mouse.py);
+    const rawDist = Atrament.lineDistance(mX, mY, mouse.px, mouse.py);
 
     // now, here we scale the initial smoothing factor by the raw distance
     // this means that when the mouse moves fast, there is more smoothing
     // and when we're drawing small detailed stuff, we have more control
     // also we hard clip at 1
-    let smoothingFactor = Math.min(0.87, this._smoothing + (rawDist - 60) / 3000);
+    const smoothingFactor = Math.min(0.87, this._smoothing + (rawDist - 60) / 3000);
 
     // calculate smoothed coordinates
     mouse.x = mX - (mX - mouse.px) * smoothingFactor;
     mouse.y = mY - (mY - mouse.py) * smoothingFactor;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
-    let dist = Atrament.lineDistance(mouse.x, mouse.y, mouse.px, mouse.py);
+    const dist = Atrament.lineDistance(mouse.x, mouse.y, mouse.px, mouse.py);
 
     // calculate target thickness based on the new distance
     this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
     // approach the target gradually
     if (this._thickness > this._targetThickness) {
       this._thickness -= 0.5;
-    } else if (this._thickness < this._targetThickness) {
+    }
+    else if (this._thickness < this._targetThickness) {
       this._thickness += 0.5;
     }
     // set line width
@@ -374,7 +385,8 @@ class Atrament {
       this.mode = 'draw';
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
       this.mode = 'erase';
-    } else {
+    }
+    else {
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }
   }
@@ -384,16 +396,17 @@ class Atrament {
   }
 
   fill() {
-    let mouse = this.mouse;
-    let context = this.context;
-    let startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
+    const mouse = this.mouse;
+    const context = this.context;
+    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0);
 
     if (!this._filling) {
       this.canvas.style.cursor = 'progress';
       this._filling = true;
 
-      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, 100);
-    } else {
+      setTimeout(() => this._floodFill(mouse.x, mouse.y, startColor), 100);
+    }
+    else {
       this._fillStack.push([
         mouse.x,
         mouse.y,
@@ -406,26 +419,27 @@ class Atrament {
     const context = this.context;
     const canvasWidth = context.canvas.width;
     const canvasHeight = context.canvas.height;
-    let pixelStack = [[startX, startY]];
+    const pixelStack = [[startX, startY]];
     // hex needs to be trasformed to rgb since colorLayer accepts RGB
     const fillColor = Atrament.hexToRgb(this.color);
     // Need to save current context with colors, we will update it
-    let colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
-    let alpha = Math.min(context.globalAlpha * 10 * 255, 255);
-    let colorPixel = Atrament.colorPixel(colorLayer.data, ...fillColor, startColor, alpha);
+    const colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
+    const alpha = Math.min(context.globalAlpha * 10 * 255, 255);
+    const colorPixel = Atrament.colorPixel(colorLayer.data, ...fillColor, startColor, alpha);
     const matchColor = Atrament.matchColor(colorLayer.data, ...startColor);
     const matchFillColor = Atrament.matchColor(colorLayer.data, ...[...fillColor, 255]);
 
     // check if we're trying to fill with the same colour, if so, stop
     if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
       this._filling = false;
-      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
       return;
     }
 
     while (pixelStack.length) {
-      let newPos = pixelStack.pop();
-      let [x, y] = newPos;
+      const newPos = pixelStack.pop();
+      const x = newPos[0];
+      let y = newPos[1];
 
       let pixelPos = (y * canvasWidth + x) * 4;
 
@@ -448,7 +462,8 @@ class Atrament {
               pixelStack.push([x - 1, y]);
               reachLeft = true;
             }
-          } else if (reachLeft) {
+          }
+          else if (reachLeft) {
             reachLeft = false;
           }
         }
@@ -459,7 +474,8 @@ class Atrament {
               pixelStack.push([x + 1, y]);
               reachRight = true;
             }
-          } else if (reachRight) {
+          }
+          else if (reachRight) {
             reachRight = false;
           }
         }
@@ -473,9 +489,10 @@ class Atrament {
 
     if (this._fillStack.length) {
       this._floodFill(...this._fillStack.shift());
-    } else {
+    }
+    else {
       this._filling = false;
-      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
     }
   }
 

@@ -1,0 +1,30 @@
+{
+  "extends": ["eslint:recommended", "airbnb"],
+  "env": {
+    "browser": true
+  },
+  "parser": "babel-eslint",
+  "rules": {
+    "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+    "semi": ["error", "always"],
+    "no-console": ["off"],
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+    "no-param-reassign": ["off"],
+    "no-underscore-dangle": ["off"],
+    "brace-style": ["error", "stroustrup"],
+    "comma-dangle": ["error", "never"],
+    "func-names": ["off"],
+    "consistent-return": ["off"],
+    "max-len": ["error", { "code": 100, "tabWidth": 2, "ignoreComments": true }],
+    "padded-blocks": ["off"],
+    "global-require": ["off"],
+    "no-unused-expressions": ["off"],
+    "no-shadow": ["off"],
+    "new-cap": ["error", { "capIsNewExceptions": ["Polymer", "ObjectId", "Intercom"] }],
+    "no-restricted-syntax": ["error", "DebuggerStatement", "LabeledStatement", "WithStatement"],
+    "no-nested-ternary": ["off"],
+    "no-return-assign": ["off"],
+    "no-confusing-arrow": ["off"],
+    "no-cond-assign": ["off"]
+  }
+}

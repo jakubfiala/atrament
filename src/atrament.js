@@ -1,10 +1,6 @@
 // make a class for Point
 class Point {
   constructor(x, y) {
-    if (typeof x === 'undefined' || typeof y === 'undefined') {
-      throw new Error('not enough coordinates for Point.');
-    }
-
     this._x = x;
     this._y = y;
   }
@@ -26,10 +22,6 @@ class Point {
   }
 
   set(x, y) {
-    if (typeof x === 'undefined' || typeof y === 'undefined') {
-      throw new Error('not enough coordinates for Point.set');
-    }
-
     this._x = x;
     this._y = y;
   }
@@ -154,7 +146,6 @@ class Atrament {
       this.context.beginPath();
       this.context.moveTo(this.mouse.px, this.mouse.py);
     };
-
     const mouseUp = () => {
       this.mouse.down = false;
       // stop drawing
@@ -169,7 +160,7 @@ class Atrament {
     this.canvas.addEventListener('touchend', mouseUp);
     this.canvas.addEventListener('touchmove', mouseMove);
 
-    // helper for destroying Atrament(removing event listeners)
+    // helper for destroying Atrament (removing event listeners)
     this.destroy = () => {
       this.clear();
       this.canvas.removeEventListener('mousemove', mouseMove);
@@ -204,17 +195,15 @@ class Atrament {
   }
 
   static lineDistance(x1, y1, x2, y2) {
-    // calculate euclidean distance between(x1, y1) and(x2, y2)
+    // calculate euclidean distance between (x1, y1) and (x2, y2)
     const xs = Math.pow(x2 - x1, 2);
     const ys = Math.pow(y2 - y1, 2);
-
     return Math.sqrt(xs + ys);
   }
 
   static hexToRgb(hexColor) {
     // Since input type color provides hex and ImageData accepts RGB need to transform
     const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-
     return [
       parseInt(m[1], 16),
       parseInt(m[2], 16),
@@ -398,13 +387,12 @@ class Atrament {
   fill() {
     const mouse = this.mouse;
     const context = this.context;
-    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0);
+    const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
 
     if (!this._filling) {
       this.canvas.style.cursor = 'progress';
       this._filling = true;
-
-      setTimeout(() => this._floodFill(mouse.x, mouse.y, startColor), 100);
+      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, 100);
     }
     else {
       this._fillStack.push([
@@ -432,14 +420,13 @@ class Atrament {
     // check if we're trying to fill with the same colour, if so, stop
     if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
       this._filling = false;
-      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
+      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
       return;
     }
 
     while (pixelStack.length) {
       const newPos = pixelStack.pop();
-      const x = newPos[0];
-      let y = newPos[1];
+      let [x, y] = newPos;
 
       let pixelPos = (y * canvasWidth + x) * 4;
 
@@ -492,10 +479,9 @@ class Atrament {
     }
     else {
       this._filling = false;
-      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
+      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
     }
   }
-
 }
 
 // for people who like functional programming

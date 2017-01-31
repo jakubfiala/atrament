@@ -1,90 +1,4 @@
-// make a class for Point
-class Point {
-  constructor(x, y) {
-    if (typeof x === 'undefined' || typeof y === 'undefined') {
-      throw new Error('not enough coordinates for Point.');
-    }
-
-    this._x = x;
-    this._y = y;
-  }
-
-  get x() {
-    return this._x;
-  }
-
-  get y() {
-    return this._y;
-  }
-
-  set x(x) {
-    this._x = x;
-  }
-
-  set y(y) {
-    this._y = y;
-  }
-
-  set(x, y) {
-    if (typeof x === 'undefined' || typeof y === 'undefined') {
-      throw new Error('not enough coordinates for Point.set');
-    }
-
-    this._x = x;
-    this._y = y;
-  }
-}
-
-// make a class for the mouse data
-class Mouse extends Point {
-  constructor() {
-    super(0, 0);
-    this._down = false;
-    this._px = 0;
-    this._py = 0;
-  }
-
-  get down() {
-    return this._down;
-  }
-
-  set down(d) {
-    this._down = d;
-  }
-
-  get x() {
-    return this._x;
-  }
-
-  get y() {
-    return this._y;
-  }
-
-  set x(x) {
-    this._x = x;
-  }
-
-  set y(y) {
-    this._y = y;
-  }
-
-  get px() {
-    return this._px;
-  }
-
-  get py() {
-    return this._py;
-  }
-
-  set px(px) {
-    this._px = px;
-  }
-
-  set py(py) {
-    this._py = py;
-  }
-
-}
+import Mouse from './mouse.js';
 
 class Atrament {
   constructor(selector, width, height, color) {
@@ -154,7 +68,6 @@ class Atrament {
       this.context.beginPath();
       this.context.moveTo(this.mouse.px, this.mouse.py);
     };
-
     const mouseUp = () => {
       this.mouse.down = false;
       // stop drawing
@@ -169,7 +82,7 @@ class Atrament {
     this.canvas.addEventListener('touchend', mouseUp);
     this.canvas.addEventListener('touchmove', mouseMove);
 
-    // helper for destroying Atrament(removing event listeners)
+    // helper for destroying Atrament (removing event listeners)
     this.destroy = () => {
       this.clear();
       this.canvas.removeEventListener('mousemove', mouseMove);
@@ -201,20 +114,19 @@ class Atrament {
     this._targetThickness = 2;
     this._weight = 2;
     this._mode = 'draw';
+    this._adaptive = true;
   }
 
   static lineDistance(x1, y1, x2, y2) {
-    // calculate euclidean distance between(x1, y1) and(x2, y2)
+    // calculate euclidean distance between (x1, y1) and (x2, y2)
     const xs = Math.pow(x2 - x1, 2);
     const ys = Math.pow(y2 - y1, 2);
-
     return Math.sqrt(xs + ys);
   }
 
   static hexToRgb(hexColor) {
     // Since input type color provides hex and ImageData accepts RGB need to transform
     const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-
     return [
       parseInt(m[1], 16),
       parseInt(m[2], 16),
@@ -280,17 +192,23 @@ class Atrament {
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = Atrament.lineDistance(mouse.x, mouse.y, mouse.px, mouse.py);
 
-    // calculate target thickness based on the new distance
-    this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
-    // approach the target gradually
-    if (this._thickness > this._targetThickness) {
-      this._thickness -= 0.5;
+    if (this._adaptive) {
+      // calculate target thickness based on the new distance
+      this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
+      // approach the target gradually
+      if (this._thickness > this._targetThickness) {
+        this._thickness -= 0.5;
+      }
+      else if (this._thickness < this._targetThickness) {
+        this._thickness += 0.5;
+      }
+      // set line width
+      context.lineWidth = this._thickness;
     }
-    else if (this._thickness < this._targetThickness) {
-      this._thickness += 0.5;
+    else {
+      // line width is equal to default weight
+      context.lineWidth = this._weight;
     }
-    // set line width
-    context.lineWidth = this._thickness;
 
     // draw using quad interpolation
     context.quadraticCurveTo(mouse.px, mouse.py, mouse.x, mouse.y);
@@ -320,6 +238,14 @@ class Atrament {
     this._thickness = w;
     this._targetThickness = w;
     this._maxWeight = w + this.WEIGHT_SPREAD;
+  }
+
+  get adaptiveStroke() {
+    return this._adaptive;
+  }
+
+  set adaptiveStroke(s) {
+    this._adaptive = !!s;
   }
 
   get mode() {
@@ -398,13 +324,12 @@ class Atrament {
   fill() {
     const mouse = this.mouse;
     const context = this.context;
-    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0);
+    const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
 
     if (!this._filling) {
       this.canvas.style.cursor = 'progress';
       this._filling = true;
-
-      setTimeout(() => this._floodFill(mouse.x, mouse.y, startColor), 100);
+      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, 100);
     }
     else {
       this._fillStack.push([
@@ -432,7 +357,7 @@ class Atrament {
     // check if we're trying to fill with the same colour, if so, stop
     if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
       this._filling = false;
-      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
+      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
       return;
     }
 
@@ -492,10 +417,9 @@ class Atrament {
     }
     else {
       this._filling = false;
-      setTimeout(() => this.canvas.style.cursor = 'crosshair', 100);
+      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
     }
   }
-
 }
 
 // for people who like functional programming

@@ -65,17 +65,21 @@ sketcher.weight = 20; //in pixels
 ```
 + change the color:
 ```js
-sketcher.color = `#ff485e`; //just like CSS
+sketcher.color = '#ff485e'; //just like CSS
 ```
 + toggle between modes:
 ```js
-sketcher.mode = `erase`; 	// eraser tool
-sketcher.mode = `fill`; 	// click to fill area
-sketcher.mode = `draw`; 	// default
+sketcher.mode = 'erase'; 	// eraser tool
+sketcher.mode = 'fill'; 	// click to fill area
+sketcher.mode = 'draw'; 	// default
 ```
-+ toggle smoothing - having it on makes the drawings look much better, turning it off makes it feel a bit more responsive:
++ toggle smoothing - having it on makes the drawings look much better, turning it off makes it feel a bit more responsive. `true` by default.
 ```js
 sketcher.smoothing = false;
+```
++ toggle adaptive stroke, i.e. line width changing based on drawing speed for a more natural effect. `true` by default.
+```js
+sketcher.adaptiveStroke = false;
 ```
 + change the opacity:
 ```js
@@ -87,6 +91,13 @@ sketcher.opacity = 0.5; //number between 0-1
 var dataURL = sketcher.toImage();
 //then we can, for instance, open a new window with it
 window.open(dataURL);
+```
++ `dirty` event – do something when the canvas becomes dirty:
+```js
+// this also fires when you clear the canvas
+// the dirty property is then false
+// note that we attach the event to canvas
+canvas.addEventListener('dirty', e => console.info(sketcher.dirty));
 ```
 
 ## Development

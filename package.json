@@ -1,6 +1,6 @@
 {
   "name": "atrament",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
   "main": "lib/atrament.js",
   "scripts": {

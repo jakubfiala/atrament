@@ -1,82 +1,4 @@
-// make a class for Point
-class Point {
-  constructor(x, y) {
-    this._x = x;
-    this._y = y;
-  }
-
-  get x() {
-    return this._x;
-  }
-
-  get y() {
-    return this._y;
-  }
-
-  set x(x) {
-    this._x = x;
-  }
-
-  set y(y) {
-    this._y = y;
-  }
-
-  set(x, y) {
-    this._x = x;
-    this._y = y;
-  }
-}
-
-// make a class for the mouse data
-class Mouse extends Point {
-  constructor() {
-    super(0, 0);
-    this._down = false;
-    this._px = 0;
-    this._py = 0;
-  }
-
-  get down() {
-    return this._down;
-  }
-
-  set down(d) {
-    this._down = d;
-  }
-
-  get x() {
-    return this._x;
-  }
-
-  get y() {
-    return this._y;
-  }
-
-  set x(x) {
-    this._x = x;
-  }
-
-  set y(y) {
-    this._y = y;
-  }
-
-  get px() {
-    return this._px;
-  }
-
-  get py() {
-    return this._py;
-  }
-
-  set px(px) {
-    this._px = px;
-  }
-
-  set py(py) {
-    this._py = py;
-  }
-
-}
+import Mouse from './mouse.js';
 
 class Atrament {
   constructor(selector, width, height, color) {
@@ -192,6 +114,7 @@ class Atrament {
     this._targetThickness = 2;
     this._weight = 2;
     this._mode = 'draw';
+    this._adaptive = true;
   }
 
   static lineDistance(x1, y1, x2, y2) {
@@ -269,17 +192,23 @@ class Atrament {
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = Atrament.lineDistance(mouse.x, mouse.y, mouse.px, mouse.py);
 
-    // calculate target thickness based on the new distance
-    this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
-    // approach the target gradually
-    if (this._thickness > this._targetThickness) {
-      this._thickness -= 0.5;
+    if (this._adaptive) {
+      // calculate target thickness based on the new distance
+      this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
+      // approach the target gradually
+      if (this._thickness > this._targetThickness) {
+        this._thickness -= 0.5;
+      }
+      else if (this._thickness < this._targetThickness) {
+        this._thickness += 0.5;
+      }
+      // set line width
+      context.lineWidth = this._thickness;
     }
-    else if (this._thickness < this._targetThickness) {
-      this._thickness += 0.5;
+    else {
+      // line width is equal to default weight
+      context.lineWidth = this._weight;
     }
-    // set line width
-    context.lineWidth = this._thickness;
 
     // draw using quad interpolation
     context.quadraticCurveTo(mouse.px, mouse.py, mouse.x, mouse.y);
@@ -309,6 +238,14 @@ class Atrament {
     this._thickness = w;
     this._targetThickness = w;
     this._maxWeight = w + this.WEIGHT_SPREAD;
+  }
+
+  get adaptiveStroke() {
+    return this._adaptive;
+  }
+
+  set adaptiveStroke(s) {
+    this._adaptive = !!s;
   }
 
   get mode() {
@@ -426,7 +363,8 @@ class Atrament {
 
     while (pixelStack.length) {
       const newPos = pixelStack.pop();
-      let [x, y] = newPos;
+      const x = newPos[0];
+      let y = newPos[1];
 
       let pixelPos = (y * canvasWidth + x) * 4;
 

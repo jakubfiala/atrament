@@ -344,7 +344,7 @@ class Atrament {
     const context = this.context;
     const canvasWidth = context.canvas.width;
     const canvasHeight = context.canvas.height;
-    const pixelStack = [[startX, startY]];
+    const pixelStack = [[Math.floor(startX), Math.floor(startY)]];
     // hex needs to be trasformed to rgb since colorLayer accepts RGB
     const fillColor = Atrament.hexToRgb(this.color);
     // Need to save current context with colors, we will update it

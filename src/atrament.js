@@ -342,9 +342,11 @@ class Atrament {
 
   _floodFill(startX, startY, startColor) {
     const context = this.context;
+    const startXf = Math.floor(startX);
+    const startYf = Math.floor(startY);
     const canvasWidth = context.canvas.width;
     const canvasHeight = context.canvas.height;
-    const pixelStack = [[Math.floor(startX), Math.floor(startY)]];
+    const pixelStack = [[startXf, startYf]];
     // hex needs to be trasformed to rgb since colorLayer accepts RGB
     const fillColor = Atrament.hexToRgb(this.color);
     // Need to save current context with colors, we will update it
@@ -355,7 +357,7 @@ class Atrament {
     const matchFillColor = Atrament.matchColor(colorLayer.data, ...[...fillColor, 255]);
 
     // check if we're trying to fill with the same colour, if so, stop
-    if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
+    if (matchFillColor((startYf * context.canvas.width + startXf) * 4)) {
       this._filling = false;
       setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
       return;

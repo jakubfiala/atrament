@@ -28,10 +28,10 @@ class Atrament {
       let y = position.offsetY;
 
       if (typeof x === 'undefined') {
-        x = position.clientX + document.documentElement.scrollLeft - rect.left;
+        x = position.clientX - rect.left;
       }
       if (typeof y === 'undefined') {
-        y = position.clientY + document.documentElement.scrollTop - rect.top;
+        y = position.clientY - rect.top;
       }
 
       // draw if we should draw

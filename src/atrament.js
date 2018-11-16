@@ -11,8 +11,8 @@ class Atrament {
     if (!this.canvas) throw new Error('canvas not found');
 
     // set external canvas params
-    this.canvas.width = width || 500;
-    this.canvas.height = height || 500;
+    this.canvas.width = width || this.canvas.width;
+    this.canvas.height = height || this.canvas.height;
     this.canvas.style.cursor = 'crosshair';
 
     // create a mouse object

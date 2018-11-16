@@ -71,7 +71,7 @@
 	</body>
 	<script>
 		var canvas = document.getElementById('sketcher');
-		var atrament = atrament(canvas, window.innerWidth, window.innerHeight);
+		var atrament = atrament(canvas, canvas.offsetWidth, canvas.offsetHeight);
 
 		var clearButton = document.getElementById('clear');
 		canvas.addEventListener('dirty', function(e) {

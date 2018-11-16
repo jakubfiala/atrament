@@ -20,7 +20,9 @@ class Atrament {
 
     // mousemove handler
     const mouseMove = e => {
-      e.preventDefault();
+      if (e.cancelable) {
+        e.preventDefault();
+      }
 
       const rect = this.canvas.getBoundingClientRect();
       const position = e.changedTouches && e.changedTouches[0] || e;
@@ -50,7 +52,9 @@ class Atrament {
 
     // mousedown handler
     const mouseDown = (mousePosition) => {
-      mousePosition.preventDefault();
+      if (mousePosition.cancelable) {
+        mousePosition.preventDefault();
+      }
       // update position just in case
       mouseMove(mousePosition);
 

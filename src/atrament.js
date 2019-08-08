@@ -1,8 +1,20 @@
 import Mouse from './mouse.js';
 
 class Atrament {
-  constructor(selector, width, height, color) {
+  constructor(selector, ...theArgs) {
     if (!document) throw new Error('no DOM found');
+    let config;
+    if (typeof theArgs[0] === 'object'){
+      // New style: passes one config object for width, height, color, weight, smoothing, adaptiveStroke, mode and opacity
+      config = theArgs[0];
+    }else{
+      // Old style, passes width, height, color as separate parameters
+      config = {
+        width: theArgs[0],
+        height: theArgs[1],
+        color: theArgs[2]
+      }
+    }
 
     // get canvas element
     if (selector instanceof window.Node && selector.tagName === 'CANVAS') this.canvas = selector;
@@ -11,8 +23,8 @@ class Atrament {
     if (!this.canvas) throw new Error('canvas not found');
 
     // set external canvas params
-    this.canvas.width = width || this.canvas.width;
-    this.canvas.height = height || this.canvas.height;
+    this.canvas.width = config.width || this.canvas.width;
+    this.canvas.height = config.height || this.canvas.height;
     this.canvas.style.cursor = 'crosshair';
 
     // create a mouse object
@@ -80,6 +92,8 @@ class Atrament {
 
       if (this.mouse.x === x && this.mouse.y === y){
         this.draw(this.mouse.x, this.mouse.y);
+      }else{
+        console.log('m.x: %s, m.y: %s, x: %s, y: %s', this.mouse.x, this.mouse.x, x, y);
       }
       // stop drawing
       this.context.closePath();
@@ -108,7 +122,7 @@ class Atrament {
     this.context = this.canvas.getContext('2d');
     this.context.globalCompositeOperation = 'source-over';
     this.context.globalAlpha = 1;
-    this.context.strokeStyle = color || 'rgba(0,0,0,1)';
+    this.context.strokeStyle = config.color || 'rgba(0,0,0,1)';
     this.context.lineCap = 'round';
     this.context.lineJoin = 'round';
     this.context.translate(0.5, 0.5);
@@ -126,6 +140,9 @@ class Atrament {
     this._weight = 2;
     this._mode = 'draw';
     this._adaptive = true;
+    
+    // update from config object
+    ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'opacity'].forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
 
   static lineDistance(x1, y1, x2, y2) {
@@ -436,11 +453,9 @@ class Atrament {
 }
 
 // for people who like functional programming
-function atrament(selector, width, height, color) {
-  return new Atrament(selector, width, height, color);
+function atrament(selector, ...theArgs) {
+  return new Atrament(selector, ...theArgs);
 }
-
-
 
 module.exports = atrament;
 module.exports.Atrament = Atrament;

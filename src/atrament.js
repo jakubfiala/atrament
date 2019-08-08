@@ -63,17 +63,24 @@ class Atrament {
         this.fill();
         return;
       }
-
       // remember it
       this.mouse.px = this.mouse.x;
       this.mouse.py = this.mouse.y;
-      // begin drawing
       this.mouse.down = true;
+
+      // begin drawing
       this.context.beginPath();
       this.context.moveTo(this.mouse.px, this.mouse.py);
     };
-    const mouseUp = () => {
+    const mouseUp = (e) => {
+      const position = e.changedTouches && e.changedTouches[0] || e;
+      let x = position.offsetX;
+      let y = position.offsetY;
       this.mouse.down = false;
+
+      if (this.mouse.x === x && this.mouse.y === y){
+        this.draw(this.mouse.x, this.mouse.y);
+      }
       // stop drawing
       this.context.closePath();
     };
@@ -432,6 +439,8 @@ class Atrament {
 function atrament(selector, width, height, color) {
   return new Atrament(selector, width, height, color);
 }
+
+
 
 module.exports = atrament;
 module.exports.Atrament = Atrament;

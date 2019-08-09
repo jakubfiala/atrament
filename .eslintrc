@@ -25,6 +25,10 @@
     "no-nested-ternary": ["off"],
     "no-return-assign": ["off"],
     "no-confusing-arrow": ["off"],
-    "no-cond-assign": ["off"]
+    "no-cond-assign": ["off"],
+    "no-mixed-operators": ["off"],
+    "no-restricted-properties": ["off"],
+    "no-plusplus": ["off"],
+    "import/extensions": ["off"]
   }
 }

@@ -78,7 +78,7 @@ class Atrament {
       let y = position.offsetY;
       this.mouse.down = false;
 
-      if (this.mouse.x === x && this.mouse.y === y){
+      if (this.mouse.x === x && this.mouse.y === y) {
         this.draw(this.mouse.x, this.mouse.y);
       }
       // stop drawing
@@ -439,8 +439,6 @@ class Atrament {
 function atrament(selector, width, height, color) {
   return new Atrament(selector, width, height, color);
 }
-
-
 
 module.exports = atrament;
 module.exports.Atrament = Atrament;

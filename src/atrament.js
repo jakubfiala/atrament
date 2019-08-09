@@ -74,8 +74,8 @@ class Atrament {
     };
     const mouseUp = (e) => {
       const position = e.changedTouches && e.changedTouches[0] || e;
-      let x = position.offsetX;
-      let y = position.offsetY;
+      const x = position.offsetX;
+      const y = position.offsetY;
       this.mouse.down = false;
 
       if (this.mouse.x === x && this.mouse.y === y) {

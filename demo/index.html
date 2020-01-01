@@ -35,7 +35,7 @@
 			}
 
 			body {
-				background-image: url('http://www.publicdomainpictures.net/download-picture.php?adresar=50000&soubor=notebook-page.jpg');
+				background-image: url('img/bg.jpg');
 				font-family: sans-serif;
 				padding: 1em;
 			}
@@ -56,7 +56,7 @@
 			<label>Adaptive stroke</label><br>
 			<input type="checkbox" onchange="atrament.adaptiveStroke = event.target.checked;" checked autocomplete="off"><br>
 			<label>Mode</label>
-			<select onchange="atrament.mode = event.target.value;">
+			<select onchange="atrament.mode = event.target.value;" autocomplete="off">
 				<option value="draw" default>Draw</option>
 				<option value="fill" default>Fill</option>
 				<option value="erase" default>Erase</option>
@@ -71,6 +71,8 @@
 	</body>
 	<script>
 		const canvas = document.getElementById('sketcher');
+		canvas.style.cursor = 'crosshair';
+
 		const atrament = new Atrament(canvas, { width: canvas.offsetWidth, height: canvas.offsetHeight });
 
 		const clearButton = document.getElementById('clear');
@@ -80,8 +82,14 @@
 			clearButton.style.display = atrament.dirty ? 'inline-block' : 'none';
 		});
 
-		atrament.addEventListener('fillstart', () => console.log('fillstart'));
-		atrament.addEventListener('fillend', () => console.log('fillend'));
+		atrament.addEventListener('fillstart', () => {
+			canvas.style.cursor = 'wait';
+			console.log('fillstart');
+		});
+		atrament.addEventListener('fillend', () => {
+			canvas.style.cursor = 'crosshair';
+			console.log('fillend');
+		});
 		atrament.addEventListener('strokestart', () => console.log('strokestart'));
 		atrament.addEventListener('strokeend', () => console.log('strokeend'));
 	</script>

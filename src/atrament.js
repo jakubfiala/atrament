@@ -43,7 +43,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       }
 
       // draw if we should draw
-      if (this.mouse.down) {
+      if (this.mouse.down && this._mode === 'draw') {
         this.draw(x, y);
         if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
           this._dirty = true;
@@ -83,7 +83,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       const y = position.offsetY;
       this.mouse.down = false;
 
-      if (this.mouse.x === x && this.mouse.y === y) {
+      if (this.mouse.x === x && this.mouse.y === y && this.mode === 'draw') {
         this.draw(this.mouse.x, this.mouse.y);
       }
       // stop drawing

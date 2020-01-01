@@ -376,7 +376,8 @@ module.exports = class Atrament extends AtramentEventTarget {
   fill() {
     const { mouse } = this;
     const { context } = this;
-    const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
+    // converting to Array because Safari 9
+    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data);
 
     if (!this._filling) {
       const { x, y } = mouse;

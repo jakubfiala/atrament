@@ -105,6 +105,12 @@ sketchpad.weight = 20; //in pixels
 sketchpad.color = '#ff485e'; //just like CSS
 ```
 
+- change the opacity:
+
+```js
+sketchpad.opacity = 0.5; //number between 0-1
+```
+
 - toggle between modes:
 
 ```js
@@ -129,12 +135,6 @@ sketchpad.adaptiveStroke = false;
 
 ```js
 sketchpad.recordStrokes = true;
-```
-
-- change the opacity:
-
-```js
-sketchpad.opacity = 0.5; //number between 0-1
 ```
 
 - export as image:

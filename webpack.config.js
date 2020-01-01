@@ -1,8 +1,8 @@
-const webpack = require('webpack');
+const path = require('path');
 
 module.exports = {
     output: {
-        path: './dist',
+        path: path.resolve('./dist'),
         filename: 'atrament.min.js',
         library: 'Atrament',
         libraryTarget: 'var',
@@ -10,21 +10,25 @@ module.exports = {
     entry: [
         './index.js'
     ],
+    mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
     devtool: 'source-map',
-    plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            compress: {
-                warnings: false
-            }
-        })
-    ],
+    optimization: {
+        minimize: true,
+    },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
-                loaders: ['babel?presets[]=env', 'eslint?fix=true']
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['@babel/preset-env']
+                        }
+                    },
+                    'eslint-loader?fix=true'
+                ]
             }
         ]
     }

@@ -1,4 +1,4 @@
-import Mouse from './mouse.js';
+const Mouse = require('./mouse.js');
 
 module.exports = class Atrament {
   constructor(selector, config = {}) {

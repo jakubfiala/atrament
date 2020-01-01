@@ -21,4 +21,4 @@ class Mouse extends Point {
   }
 }
 
-module.exports = Mouse;
+module.exports = { Mouse, Point };

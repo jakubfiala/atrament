@@ -1,4 +1,4 @@
-const Mouse = require('./mouse.js');
+const { Mouse, Point } = require('./mouse.js');
 const Constants = require('./constants.js');
 const { AtramentEventTarget } = require('./events.js');
 
@@ -45,6 +45,10 @@ module.exports = class Atrament extends AtramentEventTarget {
       // draw if we should draw
       if (this.mouse.down && this._mode === 'draw') {
         this.draw(x, y);
+        if (this.recordStrokes) {
+          this.strokeMemory.push(new Point(x, y));
+        }
+
         if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
           this._dirty = true;
           this.fireDirty();
@@ -73,10 +77,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       this.mouse.py = this.mouse.y;
       this.mouse.down = true;
 
-      // begin drawing
-      this.context.beginPath();
-      this.context.moveTo(this.mouse.px, this.mouse.py);
-      this.dispatchEvent('strokestart', {});
+      this.beginDrawing();
     };
     const mouseUp = (e) => {
       if (this.mode === 'fill') {
@@ -90,9 +91,8 @@ module.exports = class Atrament extends AtramentEventTarget {
       if (this.mouse.x === x && this.mouse.y === y && this.mode === 'draw') {
         this.draw(this.mouse.x, this.mouse.y);
       }
-      // stop drawing
-      this.context.closePath();
-      this.dispatchEvent('strokeend', {});
+
+      this.stopDrawing();
     };
 
     // attach listeners
@@ -129,6 +129,8 @@ module.exports = class Atrament extends AtramentEventTarget {
     // set drawing params
     this.SMOOTHING_INIT = 0.85;
     this.WEIGHT_SPREAD = 10;
+    this.recordStrokes = false;
+    this.strokeMemory = [];
     this._smoothing = this.SMOOTHING_INIT;
     this._maxWeight = 12;
     this._thickness = 2;
@@ -195,6 +197,22 @@ module.exports = class Atrament extends AtramentEventTarget {
         data[pixelPos - 4 + 3] = data[pixelPos - 4 + 3] * 0.01 + alpha * 0.99;
       }
     };
+  }
+
+  beginDrawing() {
+    this.context.beginPath();
+    this.context.moveTo(this.mouse.px, this.mouse.py);
+    this.dispatchEvent('strokestart', {});
+  }
+
+  stopDrawing() {
+    this.context.closePath();
+    this.dispatchEvent('strokeend', {});
+
+    if (this.recordStrokes) {
+      this.dispatchEvent('strokerecorded', { stroke: this.strokeMemory.slice() });
+    }
+    this.strokeMemory = [];
   }
 
   draw(mX, mY) {

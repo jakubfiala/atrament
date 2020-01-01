@@ -1,10 +1,15 @@
 const Mouse = require('./mouse.js');
+const Constants = require('./constants.js');
+const { AtramentEventTarget } = require('./events.js');
 
-module.exports = class Atrament {
+module.exports = class Atrament extends AtramentEventTarget {
+
   constructor(selector, config = {}) {
     if (typeof window === 'undefined') {
       throw new Error('Looks like we\'re not running in a browser');
     }
+
+    super();
 
     // get canvas element
     if (selector instanceof window.Node && selector.tagName === 'CANVAS') this.canvas = selector;
@@ -15,7 +20,6 @@ module.exports = class Atrament {
     // set external canvas params
     this.canvas.width = config.width || this.canvas.width;
     this.canvas.height = config.height || this.canvas.height;
-    this.canvas.style.cursor = 'crosshair';
 
     // create a mouse object
     this.mouse = new Mouse();
@@ -47,18 +51,17 @@ module.exports = class Atrament {
         }
       }
       else {
-        this.mouse.x = x;
-        this.mouse.y = y;
+        this.mouse.set(x, y);
       }
     };
 
     // mousedown handler
-    const mouseDown = (mousePosition) => {
-      if (mousePosition.cancelable) {
-        mousePosition.preventDefault();
+    const mouseDown = (mouse) => {
+      if (mouse.cancelable) {
+        mouse.preventDefault();
       }
       // update position just in case
-      mouseMove(mousePosition);
+      mouseMove(mouse);
 
       // if we are filling - fill and return
       if (this._mode === 'fill') {
@@ -309,9 +312,7 @@ module.exports = class Atrament {
   }
 
   fireDirty() {
-    const event = document.createEvent('Event');
-    event.initEvent('dirty', true, true);
-    this.canvas.dispatchEvent(event);
+    this.dispatchEvent('dirty', { dirty: this._dirty });
   }
 
   clear() {
@@ -343,9 +344,9 @@ module.exports = class Atrament {
     const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
 
     if (!this._filling) {
-      this.canvas.style.cursor = 'progress';
+      this.dispatchEvent('fillstart', {});
       this._filling = true;
-      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, 100);
+      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, Constants.floodFillInterval);
     }
     else {
       this._fillStack.push([
@@ -375,7 +376,7 @@ module.exports = class Atrament {
     // check if we're trying to fill with the same colour, if so, stop
     if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
       this._filling = false;
-      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+      this.dispatchEvent('fillend', {});
       return;
     }
 
@@ -435,7 +436,7 @@ module.exports = class Atrament {
     }
     else {
       this._filling = false;
-      setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
+      this.dispatchEvent('fillend', {});
     }
   }
 };

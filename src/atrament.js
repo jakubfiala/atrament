@@ -79,6 +79,7 @@ module.exports = class Atrament extends AtramentEventTarget {
 
       this.beginDrawing();
     };
+
     const mouseUp = (e) => {
       if (this.mode === 'fill') {
         return;
@@ -210,7 +211,16 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.dispatchEvent('strokeend', {});
 
     if (this.recordStrokes) {
-      this.dispatchEvent('strokerecorded', { stroke: this.strokeMemory.slice() });
+      const stroke = {
+        points: this.strokeMemory.slice(),
+        weight: this.weight,
+        opacity: this.opacity,
+        smoothing: this.smoothing,
+        color: this.color,
+        adaptiveStroke: this.adaptiveStroke
+      };
+
+      this.dispatchEvent('strokerecorded', { stroke });
     }
     this.strokeMemory = [];
   }
@@ -296,10 +306,6 @@ module.exports = class Atrament extends AtramentEventTarget {
     return this._mode;
   }
 
-  get dirty() {
-    return !!this._dirty;
-  }
-
   set mode(m) {
     if (typeof m !== 'string') throw new Error('wrong argument type');
     switch (m) {
@@ -336,20 +342,24 @@ module.exports = class Atrament extends AtramentEventTarget {
     else this.context.globalAlpha = o / 10;
   }
 
+  isDirty() {
+    return !!this._dirty;
+  }
+
   fireDirty() {
-    this.dispatchEvent('dirty', { dirty: this._dirty });
+    this.dispatchEvent('dirty');
   }
 
   clear() {
-    if (!this.dirty) {
+    if (!this.isDirty) {
       return;
     }
 
     this._dirty = false;
-    this.fireDirty();
+    this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.context.globalCompositeOperation === 'destination-out') {
+    if (this.mode === 'erase') {
       this.mode = 'draw';
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
       this.mode = 'erase';

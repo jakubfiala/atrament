@@ -369,7 +369,8 @@ module.exports = class Atrament extends AtramentEventTarget {
     const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
 
     if (!this._filling) {
-      this.dispatchEvent('fillstart', {});
+      const { x, y } = mouse;
+      this.dispatchEvent('fillstart', { x, y });
       this._filling = true;
       setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, Constants.floodFillInterval);
     }

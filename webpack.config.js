@@ -1,10 +1,11 @@
-var webpack = require('webpack');
+const webpack = require('webpack');
+
 module.exports = {
     output: {
         path: './dist',
         filename: 'atrament.min.js',
-        libraryTarget: 'umd',
-        library: 'atrament'
+        library: 'Atrament',
+        libraryTarget: 'var',
     },
     entry: [
         './index.js'
@@ -23,7 +24,7 @@ module.exports = {
             {
                 test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
-                loaders: ['babel?presets[]=es2015', 'eslint?fix=true']
+                loaders: ['babel?presets[]=env', 'eslint?fix=true']
             }
         ]
     }

@@ -1,19 +1,9 @@
 import Mouse from './mouse.js';
 
-class Atrament {
-  constructor(selector, ...theArgs) {
-    if (!document) throw new Error('no DOM found');
-    let config;
-    if (typeof theArgs[0] === 'object'){
-      // New style: passes one config object for width, height, color, weight, smoothing, adaptiveStroke, mode and opacity
-      config = theArgs[0];
-    }else{
-      // Old style, passes width, height, color as separate parameters
-      config = {
-        width: theArgs[0],
-        height: theArgs[1],
-        color: theArgs[2]
-      }
+module.exports = class Atrament {
+  constructor(selector, config = {}) {
+    if (typeof window === 'undefined') {
+      throw new Error('Looks like we\'re not running in a browser');
     }
 
     // get canvas element
@@ -31,7 +21,7 @@ class Atrament {
     this.mouse = new Mouse();
 
     // mousemove handler
-    const mouseMove = e => {
+    const mouseMove = (e) => {
       if (e.cancelable) {
         e.preventDefault();
       }
@@ -92,8 +82,6 @@ class Atrament {
 
       if (this.mouse.x === x && this.mouse.y === y) {
         this.draw(this.mouse.x, this.mouse.y);
-      }else{
-        console.log('m.x: %s, m.y: %s, x: %s, y: %s', this.mouse.x, this.mouse.x, x, y);
       }
       // stop drawing
       this.context.closePath();
@@ -140,7 +128,7 @@ class Atrament {
     this._weight = 2;
     this._mode = 'draw';
     this._adaptive = true;
-    
+
     // update from config object
     ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'opacity'].forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
@@ -201,8 +189,8 @@ class Atrament {
   }
 
   draw(mX, mY) {
-    const mouse = this.mouse;
-    const context = this.context;
+    const { mouse } = this;
+    const { context } = this;
 
     // calculate distance from previous point
     const rawDist = Atrament.lineDistance(mX, mY, mouse.px, mouse.py);
@@ -350,8 +338,8 @@ class Atrament {
   }
 
   fill() {
-    const mouse = this.mouse;
-    const context = this.context;
+    const { mouse } = this;
+    const { context } = this;
     const startColor = Array.prototype.slice.call(context.getImageData(mouse.x, mouse.y, 1, 1).data, 0); // converting to Array because Safari 9
 
     if (!this._filling) {
@@ -369,7 +357,7 @@ class Atrament {
   }
 
   _floodFill(_startX, _startY, startColor) {
-    const context = this.context;
+    const { context } = this;
     const startX = Math.floor(_startX);
     const startY = Math.floor(_startY);
     const canvasWidth = context.canvas.width;
@@ -450,12 +438,4 @@ class Atrament {
       setTimeout(() => { this.canvas.style.cursor = 'crosshair'; }, 100);
     }
   }
-}
-
-// for people who like functional programming
-function atrament(selector, ...theArgs) {
-  return new Atrament(selector, ...theArgs);
-}
-
-module.exports = atrament;
-module.exports.Atrament = Atrament;
+};

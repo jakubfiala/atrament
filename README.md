@@ -116,13 +116,19 @@ sketchpad.mode = 'draw'; // default
 - tweak smoothing - higher values make the drawings look much better, lower values make drawing feel a bit more responsive. Set to `0.85` by default.
 
 ```js
-sketchpad.smoothing = false;
+sketchpad.smoothing = 1.3;
 ```
 
 - toggle adaptive stroke, i.e. line width changing based on drawing speed for a more natural effect. `true` by default.
 
 ```js
 sketchpad.adaptiveStroke = false;
+```
+
+- record stroke data (enables the `strokerecorded` event). `false` by default.
+
+```js
+sketchpad.recordStrokes = true;
 ```
 
 - change the opacity:

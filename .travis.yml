@@ -1,4 +1,5 @@
 language: node_js
-node_js: "6.1"
+node_js:
+  - 'node'
 install: npm install
 script: npm run build

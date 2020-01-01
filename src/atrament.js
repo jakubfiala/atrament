@@ -138,7 +138,8 @@ module.exports = class Atrament extends AtramentEventTarget {
     this._adaptive = true;
 
     // update from config object
-    ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'opacity'].forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
+    ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'opacity']
+      .forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
 
   static lineDistance(x1, y1, x2, y2) {
@@ -207,7 +208,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     // this means that when the mouse moves fast, there is more smoothing
     // and when we're drawing small detailed stuff, we have more control
     // also we hard clip at 1
-    const smoothingFactor = Math.min(0.87, this._smoothing + (rawDist - 60) / 3000);
+    const smoothingFactor = Math.min(Constants.minSmoothingFactor, this._smoothing + (rawDist - 60) / 3000);
 
     // calculate smoothed coordinates
     mouse.x = mX - (mX - mouse.px) * smoothingFactor;
@@ -218,13 +219,14 @@ module.exports = class Atrament extends AtramentEventTarget {
 
     if (this._adaptive) {
       // calculate target thickness based on the new distance
-      this._targetThickness = (dist - 1) / (50 - 1) * (this._maxWeight - this._weight) + this._weight;
+      this._targetThickness = (dist - Constants.minLineThickness)
+        / Constants.lineThicknessRange * (this._maxWeight - this._weight) + this._weight;
       // approach the target gradually
       if (this._thickness > this._targetThickness) {
-        this._thickness -= 0.5;
+        this._thickness -= Constants.thicknessIncrement;
       }
       else if (this._thickness < this._targetThickness) {
-        this._thickness += 0.5;
+        this._thickness += Constants.thicknessIncrement;
       }
       // set line width
       context.lineWidth = this._thickness;

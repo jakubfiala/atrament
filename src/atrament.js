@@ -76,8 +76,12 @@ module.exports = class Atrament extends AtramentEventTarget {
       // begin drawing
       this.context.beginPath();
       this.context.moveTo(this.mouse.px, this.mouse.py);
+      this.dispatchEvent('strokestart', {});
     };
     const mouseUp = (e) => {
+      if (this.mode === 'fill') {
+        return;
+      }
       const position = e.changedTouches && e.changedTouches[0] || e;
       const x = position.offsetX;
       const y = position.offsetY;
@@ -88,6 +92,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       }
       // stop drawing
       this.context.closePath();
+      this.dispatchEvent('strokeend', {});
     };
 
     // attach listeners

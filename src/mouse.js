@@ -19,6 +19,11 @@ class Mouse extends Point {
     this.px = 0;
     this.py = 0;
   }
+
+  setp(px, py) {
+    this.px = px;
+    this.py = py;
+  }
 }
 
 module.exports = { Mouse, Point };

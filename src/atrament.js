@@ -44,15 +44,15 @@ module.exports = class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.mouse.down && this._mode === 'draw') {
-        this.draw(x, y);
-        if (this.recordStrokes) {
-          this.strokeMemory.push(new Point(x, y));
-        }
+        const { x: nx, y: ny } = this.draw(x, y, this.mouse.px, this.mouse.py);
 
         if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
           this._dirty = true;
           this.fireDirty();
         }
+
+        this.mouse.set(x, y);
+        this.mouse.setp(nx, ny);
       }
       else {
         this.mouse.set(x, y);
@@ -77,7 +77,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       this.mouse.py = this.mouse.y;
       this.mouse.down = true;
 
-      this.beginDrawing();
+      this.beginDrawing(this.mouse.px, this.mouse.py);
     };
 
     const mouseUp = (e) => {
@@ -90,10 +90,12 @@ module.exports = class Atrament extends AtramentEventTarget {
       this.mouse.down = false;
 
       if (this.mouse.x === x && this.mouse.y === y && this.mode === 'draw') {
-        this.draw(this.mouse.x, this.mouse.y);
+        const { nx, ny } = this.draw(this.mouse.x, this.mouse.y, this.mouse.px, this.mouse.py);
+        this.mouse.px = nx;
+        this.mouse.py = ny;
       }
 
-      this.stopDrawing();
+      this.stopDrawing(this.mouse.x, this.mouse.y);
     };
 
     // attach listeners
@@ -145,15 +147,23 @@ module.exports = class Atrament extends AtramentEventTarget {
       .forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
 
-  beginDrawing() {
+  beginDrawing(x, y) {
     this.context.beginPath();
-    this.context.moveTo(this.mouse.px, this.mouse.py);
-    this.dispatchEvent('strokestart', {});
+    this.context.moveTo(x, y);
+
+    if (this.recordStrokes) {
+      this.strokeMemory.push(new Point(x, y));
+    }
+    this.dispatchEvent('strokestart', { x, y });
   }
 
-  stopDrawing() {
+  stopDrawing(x, y) {
     this.context.closePath();
-    this.dispatchEvent('strokeend', {});
+
+    if (this.recordStrokes) {
+      this.strokeMemory.push(new Point(x, y));
+    }
+    this.dispatchEvent('strokeend', { x, y });
 
     if (this.recordStrokes) {
       const stroke = {
@@ -170,12 +180,14 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.strokeMemory = [];
   }
 
-  draw(mX, mY) {
-    const { mouse } = this;
-    const { context } = this;
+  draw(mX, mY, pX, pY) {
+    if (this.recordStrokes) {
+      this.strokeMemory.push(new Point(mX, mY));
+    }
 
+    const { context } = this;
     // calculate distance from previous point
-    const rawDist = Pixels.lineDistance(mX, mY, mouse.px, mouse.py);
+    const rawDist = Pixels.lineDistance(mX, mY, pX, pY);
 
     // now, here we scale the initial smoothing factor by the raw distance
     // this means that when the mouse moves fast, there is more smoothing
@@ -183,12 +195,12 @@ module.exports = class Atrament extends AtramentEventTarget {
     // also we hard clip at 1
     const smoothingFactor = Math.min(Constants.minSmoothingFactor, this.smoothing + (rawDist - 60) / 3000);
 
-    // calculate smoothed coordinates
-    mouse.x = mX - (mX - mouse.px) * smoothingFactor;
-    mouse.y = mY - (mY - mouse.py) * smoothingFactor;
+    // calculate processed coordinates
+    const procX = mX - (mX - pX) * smoothingFactor;
+    const procY = mY - (mY - pY) * smoothingFactor;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
-    const dist = Pixels.lineDistance(mouse.x, mouse.y, mouse.px, mouse.py);
+    const dist = Pixels.lineDistance(procX, procY, pX, pY);
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
@@ -210,12 +222,10 @@ module.exports = class Atrament extends AtramentEventTarget {
     }
 
     // draw using quad interpolation
-    context.quadraticCurveTo(mouse.px, mouse.py, mouse.x, mouse.y);
+    context.quadraticCurveTo(pX, pY, procX, procY);
     context.stroke();
 
-    // remember
-    mouse.px = mouse.x;
-    mouse.py = mouse.y;
+    return { x: procX, y: procY };
   }
 
   get color() {

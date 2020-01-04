@@ -16,13 +16,7 @@ class Mouse extends Point {
   constructor() {
     super(0, 0);
     this.down = false;
-    this.px = 0;
-    this.py = 0;
-  }
-
-  setp(px, py) {
-    this.px = px;
-    this.py = py;
+    this.previous = new Point(0, 0);
   }
 }
 

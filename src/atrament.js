@@ -25,13 +25,13 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.mouse = new Mouse();
 
     // mousemove handler
-    const mouseMove = (e) => {
-      if (e.cancelable) {
-        e.preventDefault();
+    const mouseMove = (event) => {
+      if (event.cancelable) {
+        event.preventDefault();
       }
 
       const rect = this.canvas.getBoundingClientRect();
-      const position = e.changedTouches && e.changedTouches[0] || e;
+      const position = event.changedTouches && event.changedTouches[0] || event;
       let x = position.offsetX;
       let y = position.offsetY;
 
@@ -42,30 +42,31 @@ module.exports = class Atrament extends AtramentEventTarget {
         y = position.clientY - rect.top;
       }
 
+      const { mouse } = this;
       // draw if we should draw
-      if (this.mouse.down && this._mode === 'draw') {
-        const { x: nx, y: ny } = this.draw(x, y, this.mouse.px, this.mouse.py);
+      if (mouse.down && this._mode === 'draw') {
+        const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
 
-        if (!this._dirty && (x !== this.mouse.x || y !== this.mouse.y)) {
+        if (!this._dirty && (x !== mouse.x || y !== mouse.y)) {
           this._dirty = true;
           this.fireDirty();
         }
 
-        this.mouse.set(x, y);
-        this.mouse.setp(nx, ny);
+        mouse.set(x, y);
+        mouse.previous.set(newX, newY);
       }
       else {
-        this.mouse.set(x, y);
+        mouse.set(x, y);
       }
     };
 
     // mousedown handler
-    const mouseDown = (mouse) => {
-      if (mouse.cancelable) {
-        mouse.preventDefault();
+    const mouseDown = (event) => {
+      if (event.cancelable) {
+        event.preventDefault();
       }
       // update position just in case
-      mouseMove(mouse);
+      mouseMove(event);
 
       // if we are filling - fill and return
       if (this._mode === 'fill') {
@@ -73,29 +74,31 @@ module.exports = class Atrament extends AtramentEventTarget {
         return;
       }
       // remember it
-      this.mouse.px = this.mouse.x;
-      this.mouse.py = this.mouse.y;
-      this.mouse.down = true;
+      const { mouse } = this;
+      mouse.previous.set(mouse.x, mouse.y);
+      mouse.down = true;
 
-      this.beginDrawing(this.mouse.px, this.mouse.py);
+      this.beginStroke(mouse.previous.x, mouse.previous.y);
     };
 
     const mouseUp = (e) => {
       if (this.mode === 'fill') {
         return;
       }
+
+      const { mouse } = this;
+
       const position = e.changedTouches && e.changedTouches[0] || e;
       const x = position.offsetX;
       const y = position.offsetY;
-      this.mouse.down = false;
+      mouse.down = false;
 
-      if (this.mouse.x === x && this.mouse.y === y && this.mode === 'draw') {
-        const { nx, ny } = this.draw(this.mouse.x, this.mouse.y, this.mouse.px, this.mouse.py);
-        this.mouse.px = nx;
-        this.mouse.py = ny;
+      if (mouse.x === x && mouse.y === y && this.mode === 'draw') {
+        const { x: nx, y: ny } = this.draw(mouse.x, mouse.y, mouse.previous.x, mouse.previous.y);
+        mouse.previous.set(nx, ny);
       }
 
-      this.stopDrawing(this.mouse.x, this.mouse.y);
+      this.endStroke(mouse.x, mouse.y);
     };
 
     // attach listeners
@@ -147,7 +150,13 @@ module.exports = class Atrament extends AtramentEventTarget {
       .forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
 
-  beginDrawing(x, y) {
+  /**
+   * Begins a stroke at a given position
+   *
+   * @param {number} x
+   * @param {number} y
+   */
+  beginStroke(x, y) {
     this.context.beginPath();
     this.context.moveTo(x, y);
 
@@ -157,7 +166,13 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.dispatchEvent('strokestart', { x, y });
   }
 
-  stopDrawing(x, y) {
+  /**
+   * Ends a stroke at a given position
+   *
+   * @param {number} x
+   * @param {number} y
+   */
+  endStroke(x, y) {
     this.context.closePath();
 
     if (this.recordStrokes) {
@@ -180,14 +195,23 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.strokeMemory = [];
   }
 
-  draw(mX, mY, pX, pY) {
+  /**
+   * Draws a smooth quadratic curve with adaptive stroke thickness
+   * between two points
+   *
+   * @param {number} x current X coordinate
+   * @param {number} y current Y coordinate
+   * @param {number} prevX previous X coordinate
+   * @param {number} prevY previous Y coordinate
+   */
+  draw(x, y, prevX, prevY) {
     if (this.recordStrokes) {
-      this.strokeMemory.push(new Point(mX, mY));
+      this.strokeMemory.push(new Point(x, y));
     }
 
     const { context } = this;
     // calculate distance from previous point
-    const rawDist = Pixels.lineDistance(mX, mY, pX, pY);
+    const rawDist = Pixels.lineDistance(x, y, prevX, prevY);
 
     // now, here we scale the initial smoothing factor by the raw distance
     // this means that when the mouse moves fast, there is more smoothing
@@ -196,11 +220,11 @@ module.exports = class Atrament extends AtramentEventTarget {
     const smoothingFactor = Math.min(Constants.minSmoothingFactor, this.smoothing + (rawDist - 60) / 3000);
 
     // calculate processed coordinates
-    const procX = mX - (mX - pX) * smoothingFactor;
-    const procY = mY - (mY - pY) * smoothingFactor;
+    const procX = x - (x - prevX) * smoothingFactor;
+    const procY = y - (y - prevY) * smoothingFactor;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
-    const dist = Pixels.lineDistance(procX, procY, pX, pY);
+    const dist = Pixels.lineDistance(procX, procY, prevX, prevY);
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
@@ -222,7 +246,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     }
 
     // draw using quad interpolation
-    context.quadraticCurveTo(pX, pY, procX, procY);
+    context.quadraticCurveTo(prevX, prevY, procX, procY);
     context.stroke();
 
     return { x: procX, y: procY };

@@ -37,6 +37,7 @@ Enjoy!
     - [Stroke start/end](#stroke-startend)
     - [Fill start/end](#fill-startend)
     - [Stroke recording](#stroke-recording)
+  - [Programmatic drawing](#programmatic-drawing)
   - [Development](#development)
 
 ## Installation
@@ -197,6 +198,48 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
   adaptiveStroke,
 }
 */
+```
+
+## Programmatic drawing
+
+To enable functionality such as undo/redo, stroke post-processing, and SVG export in apps using Atrament, the library
+can be configured to record the "pen strokes".
+
+The first step is to enable `recordStrokes`, and add a listener for the `strokerecorded` event:
+
+```js
+atrament.recordStrokes = true;
+atrament.addEventListener('strokerecorded', ({ stroke }) => {
+  // store `stroke` somewhere
+});
+```
+
+The stroke can then be reconstructed using methods of the `Atrament` class:
+
+```js
+// don't want to modify original data
+const points = stroke.points.slice();
+
+const firstPoint = points.shift();
+// beginStroke moves the "pen" to the given position and starts the path
+atrament.beginStroke(firstPoint.x, firstPoint.y);
+
+let prevPoint = firstPoint;
+while (points.length > 0) {
+  const point = points.shift();
+
+  // the `draw` method accepts the current real coordinates
+  // (i. e. actual cursor position), and the previous processed (filtered)
+  // position. It returns an object with the current processed position.
+  const { x, y } = atrament.draw(point.x, point.y, prevPoint.x, prevPoint.y);
+
+  // the processed position is the one where the line is actually drawn to
+  // so we have to store it and pass it to `draw` in the next step
+  prevPoint = { x, y };
+}
+
+// endStroke closes the path
+atrament.endStroke(prevPoint.x, prevPoint.y);
 ```
 
 ## Development

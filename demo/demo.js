@@ -60,6 +60,14 @@ const sleep = async time => new Promise((r) => setTimeout(r, time));
 
 simButton.addEventListener('click', async e => {
   e.preventDefault();
+
+  // set drawing options
+  atrament.weight = testStroke.weight;
+  atrament.opacity = testStroke.opacity;
+  atrament.smoothing = testStroke.smoothing;
+  atrament.color = testStroke.color;
+  atrament.adaptiveStroke = testStroke.adaptiveStroke;
+
   // don't want to modify original data
   const points = testStroke.points.slice();
 

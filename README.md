@@ -217,6 +217,13 @@ atrament.addEventListener('strokerecorded', ({ stroke }) => {
 The stroke can then be reconstructed using methods of the `Atrament` class:
 
 ```js
+// set drawing options
+atrament.weight = stroke.weight;
+atrament.opacity = stroke.opacity;
+atrament.smoothing = stroke.smoothing;
+atrament.color = stroke.color;
+atrament.adaptiveStroke = stroke.adaptiveStroke;
+
 // don't want to modify original data
 const points = stroke.points.slice();
 

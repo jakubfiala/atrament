@@ -295,15 +295,6 @@ module.exports = class Atrament extends AtramentEventTarget {
     }
   }
 
-  set opacity(o) {
-    if (typeof o !== 'number') throw new Error('wrong argument type');
-    // now, we need to scale this, because our drawing method means we don't just get uniform transparency all over the drawn line.
-    // so we scale it down a lot, meaning that it'll look nicely semi-transparent
-    // unless opacity is 1, then we should go full on to 1
-    if (o >= 1) this.context.globalAlpha = 1;
-    else this.context.globalAlpha = o / 10;
-  }
-
   isDirty() {
     return !!this._dirty;
   }

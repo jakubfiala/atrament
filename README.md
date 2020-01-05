@@ -19,7 +19,7 @@ improved it, rewrote it in ES6 and made it into a neat little library.
 - Draw/Fill/Erase modes
 - Adjustable adaptive smoothing
 - Events tracking the drawing - this allows the app to "replay" or reconstruct the drawing, e.g. for undo functionality
-- Adjustable opacity, line thickness and colour
+- Adjustable line thickness and colour
 
 [Here's a basic demo.](http://fiala.uk/atrament.js/demo/)
 
@@ -104,12 +104,6 @@ sketchpad.weight = 20; //in pixels
 
 ```js
 sketchpad.color = '#ff485e'; //just like CSS
-```
-
-- change the opacity:
-
-```js
-sketchpad.opacity = 0.5; //number between 0-1
 ```
 
 - toggle between modes:
@@ -219,7 +213,6 @@ The stroke can then be reconstructed using methods of the `Atrament` class:
 ```js
 // set drawing options
 atrament.weight = stroke.weight;
-atrament.opacity = stroke.opacity;
 atrament.smoothing = stroke.smoothing;
 atrament.color = stroke.color;
 atrament.adaptiveStroke = stroke.adaptiveStroke;

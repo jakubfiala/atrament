@@ -63,7 +63,6 @@ simButton.addEventListener('click', async e => {
 
   // set drawing options
   atrament.weight = testStroke.weight;
-  atrament.opacity = testStroke.opacity;
   atrament.smoothing = testStroke.smoothing;
   atrament.color = testStroke.color;
   atrament.adaptiveStroke = testStroke.adaptiveStroke;

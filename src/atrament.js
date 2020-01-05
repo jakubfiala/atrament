@@ -3,6 +3,14 @@ const Constants = require('./constants.js');
 const { AtramentEventTarget } = require('./events.js');
 const Pixels = require('./pixels.js');
 
+const DrawingMode = {
+  DRAW: 'draw',
+  ERASE: 'erase',
+  FILL: 'fill'
+};
+
+const PathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
+
 module.exports = class Atrament extends AtramentEventTarget {
   constructor(selector, config = {}) {
     if (typeof window === 'undefined') {
@@ -44,10 +52,10 @@ module.exports = class Atrament extends AtramentEventTarget {
 
       const { mouse } = this;
       // draw if we should draw
-      if (mouse.down && this._mode === 'draw') {
+      if (mouse.down && PathDrawingModes.includes(this.mode)) {
         const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
 
-        if (!this._dirty && (x !== mouse.x || y !== mouse.y)) {
+        if (!this._dirty && this.mode === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
           this._dirty = true;
           this.fireDirty();
         }
@@ -69,7 +77,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       mouseMove(event);
 
       // if we are filling - fill and return
-      if (this._mode === 'fill') {
+      if (this.mode === DrawingMode.FILL) {
         this.fill();
         return;
       }
@@ -82,7 +90,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     };
 
     const mouseUp = (e) => {
-      if (this.mode === 'fill') {
+      if (this.mode === DrawingMode.FILL) {
         return;
       }
 
@@ -93,7 +101,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       const y = position.offsetY;
       mouse.down = false;
 
-      if (mouse.x === x && mouse.y === y && this.mode === 'draw') {
+      if (mouse.x === x && mouse.y === y && PathDrawingModes.includes(this.mode)) {
         const { x: nx, y: ny } = this.draw(mouse.x, mouse.y, mouse.previous.x, mouse.previous.y);
         mouse.previous.set(nx, ny);
       }
@@ -142,7 +150,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     this._weight = this._thickness;
     this._maxWeight = this._thickness + Constants.weightSpread;
 
-    this._mode = 'draw';
+    this._mode = DrawingMode.DRAW;
     this.adaptiveStroke = true;
 
     // update from config object
@@ -281,16 +289,16 @@ module.exports = class Atrament extends AtramentEventTarget {
   set mode(m) {
     if (typeof m !== 'string') throw new Error('wrong argument type');
     switch (m) {
-      case 'erase':
-        this._mode = 'erase';
+      case DrawingMode.ERASE:
+        this._mode = DrawingMode.ERASE;
         this.context.globalCompositeOperation = 'destination-out';
         break;
-      case 'fill':
-        this._mode = 'fill';
+      case DrawingMode.FILL:
+        this._mode = DrawingMode.FILL;
         this.context.globalCompositeOperation = 'source-over';
         break;
       default:
-        this._mode = 'draw';
+        this._mode = DrawingMode.DRAW;
         this.context.globalCompositeOperation = 'source-over';
         break;
     }
@@ -313,10 +321,10 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.mode === 'erase') {
-      this.mode = 'draw';
+    if (this.mode === DrawingMode.ERASE) {
+      this.mode = DrawingMode.DRAW;
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-      this.mode = 'erase';
+      this.mode = DrawingMode.ERASE;
     }
     else {
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);

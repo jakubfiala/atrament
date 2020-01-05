@@ -212,6 +212,7 @@ The stroke can then be reconstructed using methods of the `Atrament` class:
 
 ```js
 // set drawing options
+atrament.mode = stroke.mode;
 atrament.weight = stroke.weight;
 atrament.smoothing = stroke.smoothing;
 atrament.color = stroke.color;

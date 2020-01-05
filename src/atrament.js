@@ -183,6 +183,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     if (this.recordStrokes) {
       const stroke = {
         points: this.strokeMemory.slice(),
+        mode: this.mode,
         weight: this.weight,
         opacity: this.opacity,
         smoothing: this.smoothing,

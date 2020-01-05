@@ -47,7 +47,6 @@ atrament.addEventListener('strokeend', () => log('event: strokeend'));
 atrament.recordStrokes = true;
 atrament.addEventListener('strokerecorded', ({ stroke }) => {
   log(`event: strokerecorded - ${stroke.points.length} points`);
-  console.log(JSON.stringify(stroke));
 });
 
 // this object was obtained from 'strokerecorded'
@@ -63,6 +62,7 @@ simButton.addEventListener('click', async e => {
 
   // set drawing options
   atrament.weight = testStroke.weight;
+  atrament.mode = testStroke.mode;
   atrament.smoothing = testStroke.smoothing;
   atrament.color = testStroke.color;
   atrament.adaptiveStroke = testStroke.adaptiveStroke;

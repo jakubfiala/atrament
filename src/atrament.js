@@ -154,7 +154,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.adaptiveStroke = true;
 
     // update from config object
-    ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'opacity']
+    ['weight', 'smoothing', 'adaptiveStroke', 'mode']
       .forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
   }
 
@@ -193,7 +193,6 @@ module.exports = class Atrament extends AtramentEventTarget {
         points: this.strokeMemory.slice(),
         mode: this.mode,
         weight: this.weight,
-        opacity: this.opacity,
         smoothing: this.smoothing,
         color: this.color,
         adaptiveStroke: this.adaptiveStroke

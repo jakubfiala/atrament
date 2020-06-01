@@ -31,7 +31,7 @@ Enjoy!
       - [script tag](#script-tag)
       - [polymer](#polymer)
   - [Usage](#usage)
-  - [Options &amp; config](#options-amp-config)
+  - [Options & config](#options--config)
   - [Events](#events)
     - [Dirty/clean](#dirtyclean)
     - [Stroke start/end](#stroke-startend)
@@ -187,7 +187,6 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
   points: Array<Point>,
   color,
   weight,
-  opacity,
   smoothing,
   adaptiveStroke,
 }

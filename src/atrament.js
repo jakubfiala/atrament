@@ -96,6 +96,10 @@ module.exports = class Atrament extends AtramentEventTarget {
 
       const { mouse } = this;
 
+      if (!mouse.down) {
+        return;
+      }
+
       const position = e.changedTouches && e.changedTouches[0] || e;
       const x = position.offsetX;
       const y = position.offsetY;

@@ -7,7 +7,7 @@ const DrawingMode = {
   DRAW: 'draw',
   ERASE: 'erase',
   FILL: 'fill',
-  DISABLED: 'disabled',
+  DISABLED: 'disabled'
 };
 
 const PathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];

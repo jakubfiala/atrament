@@ -6,7 +6,8 @@ const Pixels = require('./pixels.js');
 const DrawingMode = {
   DRAW: 'draw',
   ERASE: 'erase',
-  FILL: 'fill'
+  FILL: 'fill',
+  DISABLED: 'disabled',
 };
 
 const PathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
@@ -295,6 +296,9 @@ module.exports = class Atrament extends AtramentEventTarget {
       case DrawingMode.FILL:
         this._mode = DrawingMode.FILL;
         this.context.globalCompositeOperation = 'source-over';
+        break;
+      case DrawingMode.DISABLED:
+        this._mode = DrawingMode.DISABLED;
         break;
       default:
         this._mode = DrawingMode.DRAW;

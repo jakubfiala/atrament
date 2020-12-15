@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <title>atrament.js ~ demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/> <!-- 'classic' theme -->
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
     <script src="../dist/atrament.min.js"></script>
     <script defer src="demo.js"></script>
     <style>
@@ -50,6 +52,17 @@
       #clear {
         display: none;
       }
+
+      .pickr {
+        display: inline-block;
+        height: 1.75em;
+        overflow: hidden;
+        border: solid 2px;
+        border-radius: 5px;
+        margin-bottom: 0;
+        vertical-align: middle;
+        margin-left: 5px;
+      }
     </style>
   </head>
   <body>
@@ -96,12 +109,7 @@
         <option value="disabled" default>Disabled</option>
       </select><br />
       <label>Colour</label>
-      <input
-        type="color"
-        onchange="atrament.color = event.target.value;"
-        value="#000000"
-        autocomplete="off"
-      /><br />
+      <div id="color-picker"></div><br />
       <output><pre id="events"></pre></output>
     </form>
     <canvas id="sketcher"></canvas>

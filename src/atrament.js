@@ -157,6 +157,7 @@ module.exports = class Atrament extends AtramentEventTarget {
 
     this._mode = DrawingMode.DRAW;
     this.adaptiveStroke = true;
+    this.closedPaths = true;
 
     // update from config object
     ['weight', 'smoothing', 'adaptiveStroke', 'mode']
@@ -186,7 +187,9 @@ module.exports = class Atrament extends AtramentEventTarget {
    * @param {number} y
    */
   endStroke(x, y) {
-    this.context.closePath();
+    if (this.closedPaths) {
+      this.context.closePath();
+    }
 
     if (this.recordStrokes) {
       this.strokeMemory.push(new Point(x, y));

@@ -127,6 +127,12 @@ sketchpad.smoothing = 1.3;
 sketchpad.adaptiveStroke = false;
 ```
 
+- control whether paths are closed automatically, connecting the end with the start point. `true` by default.
+
+```js
+sketchpad.closedPaths = false;
+```
+
 - record stroke data (enables the `strokerecorded` event). `false` by default.
 
 ```js

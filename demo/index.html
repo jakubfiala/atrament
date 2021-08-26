@@ -71,8 +71,9 @@
       <button id="clear" onclick="event.preventDefault(); atrament.clear();">
         clear
       </button>
-      <button id="simulate">Simulate Drawing</button>
       <br />
+      <label>Record</label><br />
+      <input id="recordButton" type="button" value="Record a stroke" onclick="recordAStroke()"/><input id="playButton" type="button" value="Draw the recorded stroke" style="display:none" onclick="play()"/><br />
       <label>Thickness</label><br />
       <input
         type="range"

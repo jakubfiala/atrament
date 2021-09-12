@@ -185,7 +185,7 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
 );
 /*
 {
-  points: Array<Point>,
+  points: Array<{{x,y}, time}>,
   color,
   weight,
   smoothing,
@@ -227,7 +227,7 @@ atrament.beginStroke(firstPoint.x, firstPoint.y);
 
 let prevPoint = firstPoint;
 while (points.length > 0) {
-  const point = points.shift();
+  const point = points.shift().point;
 
   // the `draw` method accepts the current real coordinates
   // (i. e. actual cursor position), and the previous processed (filtered)

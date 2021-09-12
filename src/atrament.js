@@ -174,7 +174,8 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.context.moveTo(x, y);
 
     if (this.recordStrokes) {
-      this.strokeMemory.push(new Point(x, y));
+      this.strokeTimestamp = performance.now();
+      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
     }
     this.dispatchEvent('strokestart', { x, y });
   }
@@ -189,7 +190,7 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.context.closePath();
 
     if (this.recordStrokes) {
-      this.strokeMemory.push(new Point(x, y));
+      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
     }
     this.dispatchEvent('strokeend', { x, y });
 
@@ -206,6 +207,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       this.dispatchEvent('strokerecorded', { stroke });
     }
     this.strokeMemory = [];
+    delete (this.strokeTimestamp);
   }
 
   /**
@@ -219,7 +221,7 @@ module.exports = class Atrament extends AtramentEventTarget {
    */
   draw(x, y, prevX, prevY) {
     if (this.recordStrokes) {
-      this.strokeMemory.push(new Point(x, y));
+      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
     }
 
     const { context } = this;

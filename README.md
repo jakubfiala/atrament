@@ -185,7 +185,12 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
 );
 /*
 {
-  points: Array<{{x,y}, time}>,
+  points: [
+    {
+      point: { x, y },
+      time,
+    }
+  ],
   color,
   weight,
   smoothing,
@@ -221,7 +226,7 @@ atrament.adaptiveStroke = stroke.adaptiveStroke;
 // don't want to modify original data
 const points = stroke.points.slice();
 
-const firstPoint = points.shift();
+const firstPoint = points.shift().point;
 // beginStroke moves the "pen" to the given position and starts the path
 atrament.beginStroke(firstPoint.x, firstPoint.y);
 

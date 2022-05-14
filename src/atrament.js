@@ -222,6 +222,17 @@ module.exports = class Atrament extends AtramentEventTarget {
   draw(x, y, prevX, prevY) {
     if (this.recordStrokes) {
       this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
+
+      const stroke = {
+        points: this.strokeMemory.slice(),
+        mode: this.mode,
+        weight: this.weight,
+        smoothing: this.smoothing,
+        color: this.color,
+        adaptiveStroke: this.adaptiveStroke
+      };
+
+      this.dispatchEvent('pointdrawn', { stroke });
     }
 
     const { context } = this;

@@ -1,7 +1,7 @@
 {
-  "name": "atrament",
+  "name": "atrament2",
   "version": "2.0.0",
-  "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
+  "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas - updated with pointdrawn event",
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",

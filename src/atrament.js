@@ -205,16 +205,7 @@ export default class Atrament extends AtramentEventTarget {
     this.dispatchEvent('strokeend', { x, y });
 
     if (this.recordStrokes) {
-      const stroke = {
-        points: this.strokeMemory.slice(),
-        mode: this.mode,
-        weight: this.weight,
-        smoothing: this.smoothing,
-        color: this.color,
-        adaptiveStroke: this.adaptiveStroke,
-      };
-
-      this.dispatchEvent('strokerecorded', { stroke });
+      this.dispatchEvent('strokerecorded', { stroke: this.currentStroke });
     }
     this.strokeMemory = [];
     delete (this.strokeTimestamp);
@@ -235,6 +226,8 @@ export default class Atrament extends AtramentEventTarget {
         point: new Point(x, y),
         time: performance.now() - this.strokeTimestamp,
       });
+
+      this.dispatchEvent('pointdrawn', { stroke: this.currentStroke });
     }
 
     const { context } = this;
@@ -325,6 +318,17 @@ export default class Atrament extends AtramentEventTarget {
         this.context.globalCompositeOperation = 'source-over';
         break;
     }
+  }
+
+  get currentStroke() {
+    return {
+      points: this.strokeMemory.slice(),
+      mode: this.mode,
+      weight: this.weight,
+      smoothing: this.smoothing,
+      color: this.color,
+      adaptiveStroke: this.adaptiveStroke,
+    };
   }
 
   isDirty() {

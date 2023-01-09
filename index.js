@@ -1,3 +1,4 @@
 import Atrament from './src/atrament.js';
 
-export default Atrament;
+// eslint-disable-next-line import/prefer-default-export
+export { Atrament };

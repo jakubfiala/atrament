@@ -6,7 +6,7 @@ module.exports = {
     path: path.resolve('./dist'),
     filename: 'atrament.min.js',
     library: {
-      name: 'Atrament',
+      name: 'atrament',
       type: 'umd',
     },
   },

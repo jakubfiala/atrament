@@ -47,7 +47,7 @@ Enjoy!
 If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
 
 - install atrament as a dependency using `npm install --save atrament`.
-- You can access the Atrament class using `const Atrament = require('atrament');`
+- You can access the Atrament class using `import { Atrament } from 'atrament';`
 
 #### script tag
 
@@ -70,6 +70,8 @@ Thanks to [rubenstolk](https://github.com/rubenstolk), you can also use the [sc-
 - in your JavaScript, create an `Atrament` instance passing it your canvas object:
 
 ```js
+import { Atrament } from 'atrament';
+
 const canvas = document.querySelector('#sketchpad');
 const sketchpad = new Atrament(canvas);
 ```

@@ -2,7 +2,8 @@
   "name": "atrament",
   "version": "2.0.0",
   "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
-  "main": "index.js",
+  "main": "./dist/atrament.min.js",
+  "module": "./index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",

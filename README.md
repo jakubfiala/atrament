@@ -177,7 +177,8 @@ sketchpad.addEventListener('fillend', () => console.info('fillend'));
 
 ### Stroke recording
 
-Fires at the same time as `strokeend` and contains data necessary for reconstructing the stroke.
+`strokerecorded` fires at the same time as `strokeend` and contains data necessary for reconstructing the stroke.
+`pointdrawn` fires during stroke recording every time the `draw` method is called. It contains the same data as `strokerecorded`.
 
 ```js
 sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
@@ -197,6 +198,9 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
   adaptiveStroke,
 }
 */
+sketchpad.addEventListener('pointdrawn', ({ stroke }) =>
+  console.info(stroke),
+);
 ```
 
 ## Programmatic drawing

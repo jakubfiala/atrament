@@ -27,7 +27,7 @@ export const matchColor = (data, compR, compG, compB, compA) => (pixelPos) => {
 
 /* eslint-disable no-param-reassign */
 export const colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
-  const matcher = exports.matchColor(data, ...startColor);
+  const matcher = matchColor(data, ...startColor);
 
   return (pixelPos) => {
     // Update fill color in matrix

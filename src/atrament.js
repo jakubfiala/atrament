@@ -53,10 +53,11 @@ export default class Atrament extends AtramentEventTarget {
 
       const { mouse } = this;
       // draw if we should draw
-      if (mouse.down && PathDrawingModes.includes(this.mode)) {
+      if (mouse.down && PathDrawingModes.includes(this.modeInternal)) {
         const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
 
-        if (!this.dirty && this.mode === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
+        if (!this.dirty
+          && this.modeInternal === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
           this.dirty = true;
           this.fireDirty();
         }
@@ -343,10 +344,10 @@ export default class Atrament extends AtramentEventTarget {
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.mode === DrawingMode.ERASE) {
-      this.mode = DrawingMode.DRAW;
+    if (this.modeInternal === DrawingMode.ERASE) {
+      this.modeInternal = DrawingMode.DRAW;
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-      this.mode = DrawingMode.ERASE;
+      this.modeInternal = DrawingMode.ERASE;
     } else {
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }

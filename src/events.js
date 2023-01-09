@@ -1,4 +1,4 @@
-class AtramentEventTarget {
+export default class AtramentEventTarget {
   constructor() {
     this.eventListeners = new Map();
   }
@@ -18,8 +18,6 @@ class AtramentEventTarget {
   dispatchEvent(eventName, data) {
     const handlers = this.eventListeners.get(eventName);
     if (!handlers) return;
-    [...handlers].forEach(handler => handler(data));
+    [...handlers].forEach((handler) => handler(data));
   }
 }
-
-module.exports = { AtramentEventTarget };

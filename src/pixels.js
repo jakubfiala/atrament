@@ -1,21 +1,21 @@
-exports.lineDistance = (x1, y1, x2, y2) => {
+export const lineDistance = (x1, y1, x2, y2) => {
   // calculate euclidean distance between (x1, y1) and (x2, y2)
-  const xs = Math.pow(x2 - x1, 2);
-  const ys = Math.pow(y2 - y1, 2);
+  const xs = (x2 - x1) ** 2;
+  const ys = (y2 - y1) ** 2;
   return Math.sqrt(xs + ys);
 };
 
-exports.hexToRgb = (hexColor) => {
+export const hexToRgb = (hexColor) => {
   // Since input type color provides hex and ImageData accepts RGB need to transform
   const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
   return [
     parseInt(m[1], 16),
     parseInt(m[2], 16),
-    parseInt(m[3], 16)
+    parseInt(m[3], 16),
   ];
 };
 
-exports.matchColor = (data, compR, compG, compB, compA) => (pixelPos) => {
+export const matchColor = (data, compR, compG, compB, compA) => (pixelPos) => {
   // Pixel color equals comp color?
   const r = data[pixelPos];
   const g = data[pixelPos + 1];
@@ -25,7 +25,8 @@ exports.matchColor = (data, compR, compG, compB, compA) => (pixelPos) => {
   return (r === compR && g === compG && b === compB && a === compA);
 };
 
-exports.colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
+/* eslint-disable no-param-reassign */
+export const colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
   const matcher = exports.matchColor(data, ...startColor);
 
   return (pixelPos) => {
@@ -50,3 +51,4 @@ exports.colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
     }
   };
 };
+/* eslint-enable no-param-reassign */

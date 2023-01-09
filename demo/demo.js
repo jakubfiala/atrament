@@ -1,3 +1,5 @@
+import Atrament from '../index.js';
+
 // first, we need to set up the canvas
 const canvas = document.getElementById('sketcher');
 canvas.style.cursor = 'crosshair';
@@ -48,6 +50,8 @@ atrament.addEventListener('strokerecorded', ({ stroke }) => {
   log(`event: strokerecorded - ${stroke.points.length} points`);
 });
 
+atrament.addEventListener('pointdrawn', () => log('event: pointdrawn'));
+
 // utility to add delay to drawing steps
 const sleep = async time => new Promise((r) => setTimeout(r, time));
 
@@ -74,7 +78,6 @@ async function playRecorded() {
   // offset the drawing to avoid drawing at the exact same place
   let offset_x = Math.floor(Math.random()*100)-50;
   let offset_y = Math.floor(Math.random()*100)-50;
-    
   // set drawing options
   atrament.weight = recordedStroke.weight;
   atrament.mode = recordedStroke.mode;

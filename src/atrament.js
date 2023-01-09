@@ -1,18 +1,18 @@
-const { Mouse, Point } = require('./mouse.js');
-const Constants = require('./constants.js');
-const { AtramentEventTarget } = require('./events.js');
-const Pixels = require('./pixels.js');
+import { Mouse, Point } from './mouse.js';
+import * as Constants from './constants.js';
+import AtramentEventTarget from './events.js';
+import * as Pixels from './pixels.js';
 
 const DrawingMode = {
   DRAW: 'draw',
   ERASE: 'erase',
   FILL: 'fill',
-  DISABLED: 'disabled'
+  DISABLED: 'disabled',
 };
 
 const PathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
 
-module.exports = class Atrament extends AtramentEventTarget {
+export default class Atrament extends AtramentEventTarget {
   constructor(selector, config = {}) {
     if (typeof window === 'undefined') {
       throw new Error('Looks like we\'re not running in a browser');
@@ -40,7 +40,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       }
 
       const rect = this.canvas.getBoundingClientRect();
-      const position = event.changedTouches && event.changedTouches[0] || event;
+      const position = (event.changedTouches && event.changedTouches[0]) || event;
       let x = position.offsetX;
       let y = position.offsetY;
 
@@ -56,15 +56,14 @@ module.exports = class Atrament extends AtramentEventTarget {
       if (mouse.down && PathDrawingModes.includes(this.mode)) {
         const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
 
-        if (!this._dirty && this.mode === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
-          this._dirty = true;
+        if (!this.dirty && this.mode === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
+          this.dirty = true;
           this.fireDirty();
         }
 
         mouse.set(x, y);
         mouse.previous.set(newX, newY);
-      }
-      else {
+      } else {
         mouse.set(x, y);
       }
     };
@@ -101,7 +100,7 @@ module.exports = class Atrament extends AtramentEventTarget {
         return;
       }
 
-      const position = e.changedTouches && e.changedTouches[0] || e;
+      const position = (e.changedTouches && e.changedTouches[0]) || e;
       const x = position.offsetX;
       const y = position.offsetY;
       mouse.down = false;
@@ -142,25 +141,29 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.context.lineJoin = 'round';
     this.context.translate(0.5, 0.5);
 
-    this._filling = false;
-    this._fillStack = [];
+    this.filling = false;
+    this.fillStack = [];
 
     // set drawing params
     this.recordStrokes = false;
     this.strokeMemory = [];
 
     this.smoothing = Constants.initialSmoothingFactor;
-    this._thickness = Constants.initialThickness;
-    this._targetThickness = this._thickness;
-    this._weight = this._thickness;
-    this._maxWeight = this._thickness + Constants.weightSpread;
+    this.thickness = Constants.initialThickness;
+    this.targetThickness = this.thickness;
+    this.weightInternal = this.thickness;
+    this.maxWeight = this.thickness + Constants.weightSpread;
 
-    this._mode = DrawingMode.DRAW;
+    this.modeInternal = DrawingMode.DRAW;
     this.adaptiveStroke = true;
 
     // update from config object
     ['weight', 'smoothing', 'adaptiveStroke', 'mode']
-      .forEach(key => config[key] === undefined ? 0 : this[key] = config[key]);
+      .forEach((key) => {
+        if (config[key] !== undefined) {
+          this[key] = config[key];
+        }
+      });
   }
 
   /**
@@ -175,7 +178,10 @@ module.exports = class Atrament extends AtramentEventTarget {
 
     if (this.recordStrokes) {
       this.strokeTimestamp = performance.now();
-      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
+      this.strokeMemory.push({
+        point: new Point(x, y),
+        time: performance.now() - this.strokeTimestamp,
+      });
     }
     this.dispatchEvent('strokestart', { x, y });
   }
@@ -190,7 +196,10 @@ module.exports = class Atrament extends AtramentEventTarget {
     this.context.closePath();
 
     if (this.recordStrokes) {
-      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
+      this.strokeMemory.push({
+        point: new Point(x, y),
+        time: performance.now() - this.strokeTimestamp,
+      });
     }
     this.dispatchEvent('strokeend', { x, y });
 
@@ -201,7 +210,7 @@ module.exports = class Atrament extends AtramentEventTarget {
         weight: this.weight,
         smoothing: this.smoothing,
         color: this.color,
-        adaptiveStroke: this.adaptiveStroke
+        adaptiveStroke: this.adaptiveStroke,
       };
 
       this.dispatchEvent('strokerecorded', { stroke });
@@ -221,7 +230,10 @@ module.exports = class Atrament extends AtramentEventTarget {
    */
   draw(x, y, prevX, prevY) {
     if (this.recordStrokes) {
-      this.strokeMemory.push({ point: new Point(x, y), time: performance.now() - this.strokeTimestamp });
+      this.strokeMemory.push({
+        point: new Point(x, y),
+        time: performance.now() - this.strokeTimestamp,
+      });
     }
 
     const { context } = this;
@@ -232,7 +244,10 @@ module.exports = class Atrament extends AtramentEventTarget {
     // this means that when the mouse moves fast, there is more smoothing
     // and when we're drawing small detailed stuff, we have more control
     // also we hard clip at 1
-    const smoothingFactor = Math.min(Constants.minSmoothingFactor, this.smoothing + (rawDist - 60) / 3000);
+    const smoothingFactor = Math.min(
+      Constants.minSmoothingFactor,
+      this.smoothing + (rawDist - 60) / 3000,
+    );
 
     // calculate processed coordinates
     const procX = x - (x - prevX) * smoothingFactor;
@@ -243,21 +258,19 @@ module.exports = class Atrament extends AtramentEventTarget {
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
-      this._targetThickness = (dist - Constants.minLineThickness)
-        / Constants.lineThicknessRange * (this._maxWeight - this._weight) + this._weight;
+      this.targetThickness = ((dist - Constants.minLineThickness) / Constants.lineThicknessRange)
+        * (this.maxWeight - this.weightInternal) + this.weightInternal;
       // approach the target gradually
-      if (this._thickness > this._targetThickness) {
-        this._thickness -= Constants.thicknessIncrement;
-      }
-      else if (this._thickness < this._targetThickness) {
-        this._thickness += Constants.thicknessIncrement;
+      if (this.thickness > this.targetThickness) {
+        this.thickness -= Constants.thicknessIncrement;
+      } else if (this.thickness < this.targetThickness) {
+        this.thickness += Constants.thicknessIncrement;
       }
       // set line width
-      context.lineWidth = this._thickness;
-    }
-    else {
+      context.lineWidth = this.thickness;
+    } else {
       // line width is equal to default weight
-      context.lineWidth = this._weight;
+      context.lineWidth = this.weightInternal;
     }
 
     // draw using quad interpolation
@@ -277,44 +290,44 @@ module.exports = class Atrament extends AtramentEventTarget {
   }
 
   get weight() {
-    return this._weight;
+    return this.weightInternal;
   }
 
   set weight(w) {
     if (typeof w !== 'number') throw new Error('wrong argument type');
-    this._weight = w;
-    this._thickness = w;
-    this._targetThickness = w;
-    this._maxWeight = w + Constants.weightSpread;
+    this.weightInternal = w;
+    this.thickness = w;
+    this.targetThickness = w;
+    this.maxWeight = w + Constants.weightSpread;
   }
 
   get mode() {
-    return this._mode;
+    return this.modeInternal;
   }
 
   set mode(m) {
     if (typeof m !== 'string') throw new Error('wrong argument type');
     switch (m) {
       case DrawingMode.ERASE:
-        this._mode = DrawingMode.ERASE;
+        this.modeInternal = DrawingMode.ERASE;
         this.context.globalCompositeOperation = 'destination-out';
         break;
       case DrawingMode.FILL:
-        this._mode = DrawingMode.FILL;
+        this.modeInternal = DrawingMode.FILL;
         this.context.globalCompositeOperation = 'source-over';
         break;
       case DrawingMode.DISABLED:
-        this._mode = DrawingMode.DISABLED;
+        this.modeInternal = DrawingMode.DISABLED;
         break;
       default:
-        this._mode = DrawingMode.DRAW;
+        this.modeInternal = DrawingMode.DRAW;
         this.context.globalCompositeOperation = 'source-over';
         break;
     }
   }
 
   isDirty() {
-    return !!this._dirty;
+    return !!this.dirty;
   }
 
   fireDirty() {
@@ -326,7 +339,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       return;
     }
 
-    this._dirty = false;
+    this.dirty = false;
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
@@ -334,8 +347,7 @@ module.exports = class Atrament extends AtramentEventTarget {
       this.mode = DrawingMode.DRAW;
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
       this.mode = DrawingMode.ERASE;
-    }
-    else {
+    } else {
       this.context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }
   }
@@ -350,22 +362,23 @@ module.exports = class Atrament extends AtramentEventTarget {
     // converting to Array because Safari 9
     const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data);
 
-    if (!this._filling) {
+    if (!this.filling) {
       const { x, y } = mouse;
       this.dispatchEvent('fillstart', { x, y });
-      this._filling = true;
-      setTimeout(() => { this._floodFill(mouse.x, mouse.y, startColor); }, Constants.floodFillInterval);
-    }
-    else {
-      this._fillStack.push([
+      this.filling = true;
+      setTimeout(() => {
+        this.floodFill(mouse.x, mouse.y, startColor);
+      }, Constants.floodFillInterval);
+    } else {
+      this.fillStack.push([
         mouse.x,
         mouse.y,
-        startColor
+        startColor,
       ]);
     }
   }
 
-  _floodFill(_startX, _startY, startColor) {
+  floodFill(_startX, _startY, startColor) {
     const { context } = this;
     const startX = Math.floor(_startX);
     const startY = Math.floor(_startY);
@@ -383,7 +396,7 @@ module.exports = class Atrament extends AtramentEventTarget {
 
     // check if we're trying to fill with the same colour, if so, stop
     if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
-      this._filling = false;
+      this.filling = false;
       this.dispatchEvent('fillend', {});
       return;
     }
@@ -414,8 +427,7 @@ module.exports = class Atrament extends AtramentEventTarget {
               pixelStack.push([x - 1, y]);
               reachLeft = true;
             }
-          }
-          else if (reachLeft) {
+          } else if (reachLeft) {
             reachLeft = false;
           }
         }
@@ -426,8 +438,7 @@ module.exports = class Atrament extends AtramentEventTarget {
               pixelStack.push([x + 1, y]);
               reachRight = true;
             }
-          }
-          else if (reachRight) {
+          } else if (reachRight) {
             reachRight = false;
           }
         }
@@ -439,12 +450,11 @@ module.exports = class Atrament extends AtramentEventTarget {
     // Update context with filled bucket!
     context.putImageData(colorLayer, 0, 0);
 
-    if (this._fillStack.length) {
-      this._floodFill(...this._fillStack.shift());
-    }
-    else {
-      this._filling = false;
+    if (this.fillStack.length) {
+      this.floodFill(...this.fillStack.shift());
+    } else {
+      this.filling = false;
       this.dispatchEvent('fillend', {});
     }
   }
-};
+}

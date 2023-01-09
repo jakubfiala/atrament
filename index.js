@@ -1,1 +1,3 @@
-module.exports = require('./src/atrament.js');
+import Atrament from './src/atrament.js';
+
+export default Atrament;

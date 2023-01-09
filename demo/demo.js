@@ -61,42 +61,43 @@ const waitUntil = (reference, time) => {
   return new Promise((resolve) => { setTimeout(resolve, timeToWait); });
 };
 
-function recordAStroke() {
+window.recordAStroke = () => {
   atrament.recordStrokes = true;
   document.querySelector('#recordButton').value = 'Recording...';
-}
+};
 
 // eslint-disable-next-line no-var,vars-on-top
-var recordedStroke;
+window.recordedStroke = {};
+
 atrament.addEventListener('strokerecorded', (stroke) => {
-  recordedStroke = stroke.stroke;
+  window.recordedStroke = stroke.stroke;
   atrament.recordStrokes = false;
   document.querySelector('#recordButton').value = 'Record a stroke';
   document.querySelector('#playButton').style.display = 'inline';
 });
 
-async function playRecorded() {
+window.playRecorded = async () => {
   // offset the drawing to avoid drawing at the exact same place
   const offsetX = Math.floor(Math.random() * 100) - 50;
   const offsetY = Math.floor(Math.random() * 100) - 50;
   // set drawing options
-  atrament.weight = recordedStroke.weight;
-  atrament.mode = recordedStroke.mode;
-  atrament.smoothing = recordedStroke.smoothing;
-  atrament.color = recordedStroke.color;
-  atrament.adaptiveStroke = recordedStroke.adaptiveStroke;
+  atrament.weight = window.recordedStroke.weight;
+  atrament.mode = window.recordedStroke.mode;
+  atrament.smoothing = window.recordedStroke.smoothing;
+  atrament.color = window.recordedStroke.color;
+  atrament.adaptiveStroke = window.recordedStroke.adaptiveStroke;
 
   // add a time reference
   const reference = performance.now();
 
   // wait for the first point
-  await waitUntil(reference, recordedStroke.points[0].time);
+  await waitUntil(reference, window.recordedStroke.points[0].time);
 
-  let prevPoint = recordedStroke.points[0].point;
+  let prevPoint = window.recordedStroke.points[0].point;
   atrament.beginStroke(prevPoint.x, prevPoint.y);
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const point of recordedStroke.points.slice(1)) {
+  for (const point of window.recordedStroke.points.slice(1)) {
     // waiting for time from reference
     // eslint-disable-next-line no-await-in-loop
     await waitUntil(reference, point.time);

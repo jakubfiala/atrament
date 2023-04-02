@@ -16,7 +16,7 @@ window.atrament = atrament;
 const eventsLog = [];
 const logElement = document.getElementById('events');
 const log = (...messages) => {
-  if (eventsLog.push(messages.map(m => JSON.stringify(m)).join()) > 5) {
+  if (eventsLog.push(messages.map((m) => JSON.stringify(m)).join()) > 5) {
     eventsLog.shift();
   }
 
@@ -58,7 +58,7 @@ atrament.addEventListener('pointdrawn', () => log('event: pointdrawn'));
 const waitUntil = (reference, time) => {
   const timeElapsed = performance.now() - reference;
   const timeToWait = time - timeElapsed;
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(resolve, timeToWait);
   });
 };
@@ -71,7 +71,7 @@ window.recordAStroke = () => {
 // eslint-disable-next-line no-var,vars-on-top
 window.recordedStroke = {};
 
-atrament.addEventListener('strokerecorded', stroke => {
+atrament.addEventListener('strokerecorded', (stroke) => {
   window.recordedStroke = stroke.stroke;
   atrament.recordStrokes = false;
   document.querySelector('#recordButton').value = 'Record a stroke';
@@ -159,6 +159,6 @@ const pickr = Pickr.create({
   },
 });
 
-pickr.on('save', color => {
+pickr.on('save', (color) => {
   atrament.color = color.toRGBA().toString();
 });

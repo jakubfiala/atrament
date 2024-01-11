@@ -138,6 +138,7 @@ class Atrament extends AtramentEventTarget {
     // set external canvas params
     this.canvas.width = config.width || this.canvas.width;
     this.canvas.height = config.height || this.canvas.height;
+    this.canvas.style.touchAction = 'none';
 
     // create a mouse object
     this.mouse = new Mouse();

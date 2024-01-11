@@ -147,7 +147,7 @@ class Atrament extends AtramentEventTarget {
         event.preventDefault();
       }
 
-      const positions = event.getCoalescedEvents();
+      const positions = event.getCoalescedEvents?.() || [event];
 
       positions.forEach((position) => {
         const x = position.offsetX;
@@ -203,12 +203,9 @@ class Atrament extends AtramentEventTarget {
         return;
       }
 
-      const position = (e.changedTouches && e.changedTouches[0]) || e;
-      const x = position.offsetX;
-      const y = position.offsetY;
       mouse.down = false;
 
-      if (mouse.x === x && mouse.y === y && PathDrawingModes.includes(this.mode)) {
+      if (mouse.x === e.offsetX && mouse.y === e.offsetY && PathDrawingModes.includes(this.mode)) {
         const { x: nx, y: ny } = this.draw(mouse.x, mouse.y, mouse.previous.x, mouse.previous.y);
         mouse.previous.set(nx, ny);
       }
@@ -236,7 +233,6 @@ class Atrament extends AtramentEventTarget {
     this.context.strokeStyle = config.color || 'rgba(0,0,0,1)';
     this.context.lineCap = 'round';
     this.context.lineJoin = 'round';
-    this.context.translate(0.5, 0.5);
 
     this.filling = false;
     this.fillStack = [];

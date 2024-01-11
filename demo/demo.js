@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Atrament } from '../index.js';
+import { Atrament } from '../dist/esm/index.js';
 
 // first, we need to set up the canvas
 const canvas = document.getElementById('sketcher');

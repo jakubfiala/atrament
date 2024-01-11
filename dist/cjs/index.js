@@ -143,88 +143,21 @@ class Atrament extends AtramentEventTarget {
     // create a mouse object
     this.mouse = new Mouse();
 
-    const pointerMove = (event) => {
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-
-      const positions = event.getCoalescedEvents?.() || [event];
-
-      positions.forEach((position) => {
-        const x = position.offsetX;
-        const y = position.offsetY;
-
-        const { mouse } = this;
-        // draw if we should draw
-        if (mouse.down && PathDrawingModes.includes(this.modeInternal)) {
-          const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
-
-          if (!this.dirty
-            && this.modeInternal === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
-            this.dirty = true;
-            this.fireDirty();
-          }
-
-          mouse.set(x, y);
-          mouse.previous.set(newX, newY);
-        } else {
-          mouse.set(x, y);
-        }
-      });
-    };
-
-    const pointerDown = (event) => {
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      // update position just in case
-      pointerMove(event);
-
-      // if we are filling - fill and return
-      if (this.mode === DrawingMode.FILL) {
-        this.fill();
-        return;
-      }
-      // remember it
-      const { mouse } = this;
-      mouse.previous.set(mouse.x, mouse.y);
-      mouse.down = true;
-
-      this.beginStroke(mouse.previous.x, mouse.previous.y);
-    };
-
-    const pointerUp = (e) => {
-      if (this.mode === DrawingMode.FILL) {
-        return;
-      }
-
-      const { mouse } = this;
-
-      if (!mouse.down) {
-        return;
-      }
-
-      mouse.down = false;
-
-      if (mouse.x === e.offsetX && mouse.y === e.offsetY && PathDrawingModes.includes(this.mode)) {
-        const { x: nx, y: ny } = this.draw(mouse.x, mouse.y, mouse.previous.x, mouse.previous.y);
-        mouse.previous.set(nx, ny);
-      }
-
-      this.endStroke(mouse.x, mouse.y);
-    };
-
     // attach listeners
-    this.canvas.addEventListener('pointermove', pointerMove);
-    this.canvas.addEventListener('pointerdown', pointerDown);
-    document.addEventListener('pointerup', pointerUp);
+    const moveListener = (e) => this.pointerMove(e);
+    const downListener = (e) => this.pointerDown(e);
+    const upListener = (e) => this.pointerUp(e);
+
+    this.canvas.addEventListener('pointermove', moveListener);
+    this.canvas.addEventListener('pointerdown', downListener);
+    document.addEventListener('pointerup', upListener);
 
     // helper for destroying Atrament (removing event listeners)
     this.destroy = () => {
       this.clear();
-      this.canvas.removeEventListener('pointermove', pointerMove);
-      this.canvas.removeEventListener('pointerdown', pointerDown);
-      document.removeEventListener('pointerup', pointerUp);
+      this.canvas.removeEventListener('pointermove', moveListener);
+      this.canvas.removeEventListener('pointerdown', downListener);
+      document.removeEventListener('pointerup', upListener);
     };
 
     // set internal canvas params
@@ -258,6 +191,82 @@ class Atrament extends AtramentEventTarget {
           this[key] = config[key];
         }
       });
+  }
+
+  pointerMove(event) {
+    if (!event.isPrimary) {
+      return;
+    }
+
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+
+    const positions = event.getCoalescedEvents?.() || [event];
+
+    positions.forEach((position) => {
+      const x = position.offsetX;
+      const y = position.offsetY;
+
+      const { mouse } = this;
+      // draw if we should draw
+      if (mouse.down && PathDrawingModes.includes(this.modeInternal)) {
+        const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
+
+        if (!this.dirty
+          && this.modeInternal === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
+          this.dirty = true;
+          this.fireDirty();
+        }
+
+        mouse.set(x, y);
+        mouse.previous.set(newX, newY);
+      } else {
+        mouse.set(x, y);
+      }
+    });
+  }
+
+  pointerDown(event) {
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+    // update position just in case
+    this.pointerMove(event);
+
+    // if we are filling - fill and return
+    if (this.mode === DrawingMode.FILL) {
+      this.fill();
+      return;
+    }
+    // remember it
+    const { mouse } = this;
+    mouse.previous.set(mouse.x, mouse.y);
+    mouse.down = true;
+
+    this.beginStroke(mouse.previous.x, mouse.previous.y);
+  }
+
+  pointerUp(event) {
+    if (this.mode === DrawingMode.FILL) {
+      return;
+    }
+
+    const { mouse } = this;
+
+    if (!mouse.down) {
+      return;
+    }
+
+    mouse.down = false;
+
+    if (mouse.x === event.offsetX
+      && mouse.y === event.offsetY && PathDrawingModes.includes(this.mode)) {
+      const { x: nx, y: ny } = this.draw(mouse.x, mouse.y, mouse.previous.x, mouse.previous.y);
+      mouse.previous.set(nx, ny);
+    }
+
+    this.endStroke(mouse.x, mouse.y);
   }
 
   /**

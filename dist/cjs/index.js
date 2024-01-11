@@ -112,6 +112,41 @@ const colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
 };
 /* eslint-enable no-param-reassign */
 
+const pointerEventHandler = (handler) => (event) => {
+  if (!event.isPrimary) {
+    return;
+  }
+
+  if (event.cancelable) {
+    event.preventDefault();
+  }
+
+  handler(event);
+};
+
+const setupPointerEvents = ({
+  canvas,
+  move,
+  down,
+  up,
+}) => {
+  const moveListener = pointerEventHandler(move);
+  const downListener = pointerEventHandler(down);
+  const upListener = pointerEventHandler(up);
+
+  canvas.addEventListener('pointermove', moveListener);
+  canvas.addEventListener('pointerdown', downListener);
+  document.addEventListener('pointerup', upListener);
+
+  return {
+    removePointerEventListeners: () => {
+      canvas.removeEventListener('pointermove', moveListener);
+      canvas.removeEventListener('pointerdown', downListener);
+      document.removeEventListener('pointerup', upListener);
+    },
+  };
+};
+
 const DrawingMode = {
   DRAW: 'draw',
   ERASE: 'erase',
@@ -143,21 +178,17 @@ class Atrament extends AtramentEventTarget {
     // create a mouse object
     this.mouse = new Mouse();
 
-    // attach listeners
-    const moveListener = (e) => this.pointerMove(e);
-    const downListener = (e) => this.pointerDown(e);
-    const upListener = (e) => this.pointerUp(e);
-
-    this.canvas.addEventListener('pointermove', moveListener);
-    this.canvas.addEventListener('pointerdown', downListener);
-    document.addEventListener('pointerup', upListener);
+    const { removePointerEventListeners } = setupPointerEvents({
+      canvas: this.canvas,
+      move: this.pointerMove.bind(this),
+      down: this.pointerDown.bind(this),
+      up: this.pointerUp.bind(this),
+    });
 
     // helper for destroying Atrament (removing event listeners)
     this.destroy = () => {
       this.clear();
-      this.canvas.removeEventListener('pointermove', moveListener);
-      this.canvas.removeEventListener('pointerdown', downListener);
-      document.removeEventListener('pointerup', upListener);
+      removePointerEventListeners();
     };
 
     // set internal canvas params
@@ -194,16 +225,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   pointerMove(event) {
-    if (!event.isPrimary) {
-      return;
-    }
-
-    if (event.cancelable) {
-      event.preventDefault();
-    }
-
     const positions = event.getCoalescedEvents?.() || [event];
-
     positions.forEach((position) => {
       const x = position.offsetX;
       const y = position.offsetY;
@@ -228,9 +250,6 @@ class Atrament extends AtramentEventTarget {
   }
 
   pointerDown(event) {
-    if (event.cancelable) {
-      event.preventDefault();
-    }
     // update position just in case
     this.pointerMove(event);
 

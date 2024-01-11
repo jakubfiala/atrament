@@ -27,11 +27,11 @@ Enjoy!
 
 - [Atrament](#atrament)
   - [Installation](#installation)
-      - [as a module](#as-a-module)
-      - [script tag](#script-tag)
-      - [polymer](#polymer)
+    - [as a module](#as-a-module)
+    - [script tag](#script-tag)
+    - [polymer](#polymer)
   - [Usage](#usage)
-  - [Options & config](#options--config)
+  - [Options \& config](#options--config)
   - [Events](#events)
     - [Dirty/clean](#dirtyclean)
     - [Stroke start/end](#stroke-startend)
@@ -52,8 +52,6 @@ If you're using a tool like webpack or browserify to bundle your code, you can i
 #### script tag
 
 Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
-
-Alternatively, you can use Bower: `bower install atrament` and include `bower_components/atrament/dist/atrament.min.js` as a script tag.
 
 #### polymer
 
@@ -200,9 +198,7 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
   adaptiveStroke,
 }
 */
-sketchpad.addEventListener('pointdrawn', ({ stroke }) =>
-  console.info(stroke),
-);
+sketchpad.addEventListener('pointdrawn', ({ stroke }) => console.info(stroke));
 ```
 
 ## Programmatic drawing

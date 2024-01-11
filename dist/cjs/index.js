@@ -142,49 +142,42 @@ class Atrament extends AtramentEventTarget {
     // create a mouse object
     this.mouse = new Mouse();
 
-    // mousemove handler
-    const mouseMove = (event) => {
+    const pointerMove = (event) => {
       if (event.cancelable) {
         event.preventDefault();
       }
 
-      const rect = this.canvas.getBoundingClientRect();
-      const position = (event.changedTouches && event.changedTouches[0]) || event;
-      let x = position.offsetX;
-      let y = position.offsetY;
+      const positions = event.getCoalescedEvents();
 
-      if (typeof x === 'undefined') {
-        x = position.clientX - rect.left;
-      }
-      if (typeof y === 'undefined') {
-        y = position.clientY - rect.top;
-      }
+      positions.forEach((position) => {
+        const x = position.offsetX;
+        const y = position.offsetY;
 
-      const { mouse } = this;
-      // draw if we should draw
-      if (mouse.down && PathDrawingModes.includes(this.modeInternal)) {
-        const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
+        const { mouse } = this;
+        // draw if we should draw
+        if (mouse.down && PathDrawingModes.includes(this.modeInternal)) {
+          const { x: newX, y: newY } = this.draw(x, y, mouse.previous.x, mouse.previous.y);
 
-        if (!this.dirty
-          && this.modeInternal === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
-          this.dirty = true;
-          this.fireDirty();
+          if (!this.dirty
+            && this.modeInternal === DrawingMode.DRAW && (x !== mouse.x || y !== mouse.y)) {
+            this.dirty = true;
+            this.fireDirty();
+          }
+
+          mouse.set(x, y);
+          mouse.previous.set(newX, newY);
+        } else {
+          mouse.set(x, y);
         }
-
-        mouse.set(x, y);
-        mouse.previous.set(newX, newY);
-      } else {
-        mouse.set(x, y);
-      }
+      });
     };
 
-    // mousedown handler
-    const mouseDown = (event) => {
+    const pointerDown = (event) => {
       if (event.cancelable) {
         event.preventDefault();
       }
       // update position just in case
-      mouseMove(event);
+      pointerMove(event);
 
       // if we are filling - fill and return
       if (this.mode === DrawingMode.FILL) {
@@ -199,7 +192,7 @@ class Atrament extends AtramentEventTarget {
       this.beginStroke(mouse.previous.x, mouse.previous.y);
     };
 
-    const mouseUp = (e) => {
+    const pointerUp = (e) => {
       if (this.mode === DrawingMode.FILL) {
         return;
       }
@@ -224,22 +217,16 @@ class Atrament extends AtramentEventTarget {
     };
 
     // attach listeners
-    this.canvas.addEventListener('mousemove', mouseMove);
-    this.canvas.addEventListener('mousedown', mouseDown);
-    document.addEventListener('mouseup', mouseUp);
-    this.canvas.addEventListener('touchstart', mouseDown);
-    this.canvas.addEventListener('touchend', mouseUp);
-    this.canvas.addEventListener('touchmove', mouseMove);
+    this.canvas.addEventListener('pointermove', pointerMove);
+    this.canvas.addEventListener('pointerdown', pointerDown);
+    document.addEventListener('pointerup', pointerUp);
 
     // helper for destroying Atrament (removing event listeners)
     this.destroy = () => {
       this.clear();
-      this.canvas.removeEventListener('mousemove', mouseMove);
-      this.canvas.removeEventListener('mousedown', mouseDown);
-      document.removeEventListener('mouseup', mouseUp);
-      this.canvas.removeEventListener('touchstart', mouseDown);
-      this.canvas.removeEventListener('touchend', mouseUp);
-      this.canvas.removeEventListener('touchmove', mouseMove);
+      this.canvas.removeEventListener('pointermove', pointerMove);
+      this.canvas.removeEventListener('pointerdown', pointerDown);
+      document.removeEventListener('pointerup', pointerUp);
     };
 
     // set internal canvas params

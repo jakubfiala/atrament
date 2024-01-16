@@ -1,4 +1,9 @@
-import * as Pixels from '../pixels.js';
+import {
+  PIXEL,
+  hexToRgb,
+  pixelPainter,
+  colorMatcher,
+} from '../pixels.js';
 
 const floodFill = ({
   image,
@@ -14,14 +19,14 @@ const floodFill = ({
   const floorY = Math.floor(startY);
   const pixelStack = [[floorX, floorY]];
   // hex needs to be trasformed to rgb since colorLayer accepts RGB
-  const fillColor = Pixels.hexToRgb(color);
+  const fillColor = hexToRgb(color);
   const alpha = Math.min(globalAlpha * 10 * 255, 255);
-  const colorPixel = Pixels.colorPixel(image, ...fillColor, startColor, alpha);
-  const matchColor = Pixels.matchColor(image, ...startColor);
-  const matchFillColor = Pixels.matchColor(image, ...[...fillColor, 255]);
+  const colorPixel = pixelPainter(image, ...fillColor, startColor, alpha);
+  const matchStartColor = colorMatcher(image, ...startColor);
+  const matchFillColor = colorMatcher(image, ...[...fillColor, 255]);
 
   // check if we're trying to fill with the same colour, if so, stop
-  if (matchFillColor((floorY * width + floorX) * 4)) {
+  if (matchFillColor((floorY * width + floorX) * PIXEL)) {
     return image;
   }
 
@@ -30,23 +35,23 @@ const floodFill = ({
     const x = newPos[0];
     let y = newPos[1];
 
-    let pixelPos = (y * width + x) * 4;
+    let pixelPos = (y * width + x) * PIXEL;
 
-    while (y-- >= 0 && matchColor(pixelPos)) {
-      pixelPos -= width * 4;
+    while (y-- >= 0 && matchStartColor(pixelPos)) {
+      pixelPos -= width * PIXEL;
     }
-    pixelPos += width * 4;
+    pixelPos += width * PIXEL;
 
     ++y;
 
     let reachLeft = false;
     let reachRight = false;
 
-    while (y++ < height - 1 && matchColor(pixelPos)) {
+    while (y++ < height - 1 && matchStartColor(pixelPos)) {
       colorPixel(pixelPos);
 
       if (x > 0) {
-        if (matchColor(pixelPos - 4)) {
+        if (matchStartColor(pixelPos - PIXEL)) {
           if (!reachLeft) {
             pixelStack.push([x - 1, y]);
             reachLeft = true;
@@ -57,7 +62,7 @@ const floodFill = ({
       }
 
       if (x < width - 1) {
-        if (matchColor(pixelPos + 4)) {
+        if (matchStartColor(pixelPos + PIXEL)) {
           if (!reachRight) {
             pixelStack.push([x + 1, y]);
             reachRight = true;
@@ -67,7 +72,7 @@ const floodFill = ({
         }
       }
 
-      pixelPos += width * 4;
+      pixelPos += width * PIXEL;
     }
   }
 

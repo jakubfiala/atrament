@@ -1,7 +1,9 @@
+// eslint-disable-next-line import/no-unresolved
+import FillWorker from 'web-worker:./fill/worker';
 import { Mouse, Point } from './mouse.js';
 import * as Constants from './constants.js';
 import AtramentEventTarget from './events.js';
-import * as Pixels from './pixels.js';
+import { lineDistance } from './pixels.js';
 import { setupPointerEvents } from './pointer-events.js';
 
 const DrawingMode = {
@@ -71,6 +73,8 @@ export default class Atrament extends AtramentEventTarget {
 
     this.modeInternal = DrawingMode.DRAW;
     this.adaptiveStroke = true;
+
+    this.setupFill();
 
     // update from config object
     ['weight', 'smoothing', 'adaptiveStroke', 'mode']
@@ -210,7 +214,7 @@ export default class Atrament extends AtramentEventTarget {
 
     const { context } = this;
     // calculate distance from previous point
-    const rawDist = Pixels.lineDistance(x, y, prevX, prevY);
+    const rawDist = lineDistance(x, y, prevX, prevY);
 
     // now, here we scale the initial smoothing factor by the raw distance
     // this means that when the mouse moves fast, there is more smoothing
@@ -226,7 +230,7 @@ export default class Atrament extends AtramentEventTarget {
     const procY = y - (y - prevY) * smoothingFactor;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
-    const dist = Pixels.lineDistance(procX, procY, prevX, prevY);
+    const dist = lineDistance(procX, procY, prevX, prevY);
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
@@ -339,105 +343,47 @@ export default class Atrament extends AtramentEventTarget {
     return this.canvas.toDataURL();
   }
 
+  setupFill() {
+    this.fillWorker = new FillWorker();
+    this.fillWorker.addEventListener('message', ({ data }) => {
+      if (data.type === 'fill-result') {
+        this.filling = false;
+        this.dispatchEvent('fillend', {});
+        const imageData = new ImageData(data.result, this.canvas.width, this.canvas.height);
+        this.context.putImageData(imageData, 0, 0);
+
+        if (this.fillStack.length > 0) {
+          this.postToFillWorker(this.fillStack.shift());
+        }
+      }
+    });
+  }
+
   fill() {
-    const { mouse } = this;
-    const { context } = this;
-    // converting to Array because Safari 9
-    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data);
+    const { x, y } = this.mouse;
+    this.dispatchEvent('fillstart', { x, y });
+
+    const startColor = Array.from(this.context.getImageData(x, y, 1, 1).data);
+    const fillData = {
+      color: this.color,
+      globalAlpha: this.context.globalAlpha,
+      width: this.canvas.width,
+      height: this.canvas.height,
+      startColor,
+      startX: x,
+      startY: y,
+    };
 
     if (!this.filling) {
-      const { x, y } = mouse;
-      this.dispatchEvent('fillstart', { x, y });
       this.filling = true;
-      setTimeout(() => {
-        this.floodFill(mouse.x, mouse.y, startColor);
-      }, Constants.floodFillInterval);
+      this.postToFillWorker(fillData);
     } else {
-      this.fillStack.push([
-        mouse.x,
-        mouse.y,
-        startColor,
-      ]);
+      this.fillStack.push(fillData);
     }
   }
 
-  floodFill(_startX, _startY, startColor) {
-    const { context } = this;
-    const startX = Math.floor(_startX);
-    const startY = Math.floor(_startY);
-    const canvasWidth = context.canvas.width;
-    const canvasHeight = context.canvas.height;
-    const pixelStack = [[startX, startY]];
-    // hex needs to be trasformed to rgb since colorLayer accepts RGB
-    const fillColor = Pixels.hexToRgb(this.color);
-    // Need to save current context with colors, we will update it
-    const colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
-    const alpha = Math.min(context.globalAlpha * 10 * 255, 255);
-    const colorPixel = Pixels.colorPixel(colorLayer.data, ...fillColor, startColor, alpha);
-    const matchColor = Pixels.matchColor(colorLayer.data, ...startColor);
-    const matchFillColor = Pixels.matchColor(colorLayer.data, ...[...fillColor, 255]);
-
-    // check if we're trying to fill with the same colour, if so, stop
-    if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
-      this.filling = false;
-      this.dispatchEvent('fillend', {});
-      return;
-    }
-
-    while (pixelStack.length) {
-      const newPos = pixelStack.pop();
-      const x = newPos[0];
-      let y = newPos[1];
-
-      let pixelPos = (y * canvasWidth + x) * 4;
-
-      while (y-- >= 0 && matchColor(pixelPos)) {
-        pixelPos -= canvasWidth * 4;
-      }
-      pixelPos += canvasWidth * 4;
-
-      ++y;
-
-      let reachLeft = false;
-      let reachRight = false;
-
-      while (y++ < canvasHeight - 1 && matchColor(pixelPos)) {
-        colorPixel(pixelPos);
-
-        if (x > 0) {
-          if (matchColor(pixelPos - 4)) {
-            if (!reachLeft) {
-              pixelStack.push([x - 1, y]);
-              reachLeft = true;
-            }
-          } else if (reachLeft) {
-            reachLeft = false;
-          }
-        }
-
-        if (x < canvasWidth - 1) {
-          if (matchColor(pixelPos + 4)) {
-            if (!reachRight) {
-              pixelStack.push([x + 1, y]);
-              reachRight = true;
-            }
-          } else if (reachRight) {
-            reachRight = false;
-          }
-        }
-
-        pixelPos += canvasWidth * 4;
-      }
-    }
-
-    // Update context with filled bucket!
-    context.putImageData(colorLayer, 0, 0);
-
-    if (this.fillStack.length) {
-      this.floodFill(...this.fillStack.shift());
-    } else {
-      this.filling = false;
-      this.dispatchEvent('fillend', {});
-    }
+  postToFillWorker(fillData) {
+    const image = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+    this.fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
   }
 }

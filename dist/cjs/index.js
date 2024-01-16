@@ -1,5 +1,76 @@
 'use strict';
 
+var WorkerClass = null;
+
+try {
+    var WorkerThreads =
+        typeof module !== 'undefined' && typeof module.require === 'function' && module.require('worker_threads') ||
+        typeof __non_webpack_require__ === 'function' && __non_webpack_require__('worker_threads') ||
+        typeof require === 'function' && require('worker_threads');
+    WorkerClass = WorkerThreads.Worker;
+} catch(e) {} // eslint-disable-line
+
+function decodeBase64$1(base64, enableUnicode) {
+    return Buffer.from(base64, 'base64').toString(enableUnicode ? 'utf16' : 'utf8');
+}
+
+function createBase64WorkerFactory$2(base64, sourcemapArg, enableUnicodeArg) {
+    var sourcemap = sourcemapArg === undefined ? null : sourcemapArg;
+    var enableUnicode = enableUnicodeArg === undefined ? false : enableUnicodeArg;
+    var source = decodeBase64$1(base64, enableUnicode);
+    var start = source.indexOf('\n', 10) + 1;
+    var body = source.substring(start) + (sourcemap ? '\/\/# sourceMappingURL=' + sourcemap : '');
+    return function WorkerFactory(options) {
+        return new WorkerClass(body, Object.assign({}, options, { eval: true }));
+    };
+}
+
+function decodeBase64(base64, enableUnicode) {
+    var binaryString = atob(base64);
+    if (enableUnicode) {
+        var binaryView = new Uint8Array(binaryString.length);
+        for (var i = 0, n = binaryString.length; i < n; ++i) {
+            binaryView[i] = binaryString.charCodeAt(i);
+        }
+        return String.fromCharCode.apply(null, new Uint16Array(binaryView.buffer));
+    }
+    return binaryString;
+}
+
+function createURL(base64, sourcemapArg, enableUnicodeArg) {
+    var sourcemap = sourcemapArg === undefined ? null : sourcemapArg;
+    var enableUnicode = enableUnicodeArg === undefined ? false : enableUnicodeArg;
+    var source = decodeBase64(base64, enableUnicode);
+    var start = source.indexOf('\n', 10) + 1;
+    var body = source.substring(start) + (sourcemap ? '\/\/# sourceMappingURL=' + sourcemap : '');
+    var blob = new Blob([body], { type: 'application/javascript' });
+    return URL.createObjectURL(blob);
+}
+
+function createBase64WorkerFactory$1(base64, sourcemapArg, enableUnicodeArg) {
+    var url;
+    return function WorkerFactory(options) {
+        url = url || createURL(base64, sourcemapArg, enableUnicodeArg);
+        return new Worker(url, options);
+    };
+}
+
+var kIsNodeJS = Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]';
+
+function isNodeJS() {
+    return kIsNodeJS;
+}
+
+function createBase64WorkerFactory(base64, sourcemapArg, enableUnicodeArg) {
+    if (isNodeJS()) {
+        return createBase64WorkerFactory$2(base64, sourcemapArg, enableUnicodeArg);
+    }
+    return createBase64WorkerFactory$1(base64, sourcemapArg, enableUnicodeArg);
+}
+
+var WorkerFactory = createBase64WorkerFactory('Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwooZnVuY3Rpb24gKCkgewogICd1c2Ugc3RyaWN0JzsKCiAgY29uc3QgaGV4VG9SZ2IgPSAoaGV4Q29sb3IpID0+IHsKICAgIC8vIFNpbmNlIGlucHV0IHR5cGUgY29sb3IgcHJvdmlkZXMgaGV4IGFuZCBJbWFnZURhdGEgYWNjZXB0cyBSR0IgbmVlZCB0byB0cmFuc2Zvcm0KICAgIGNvbnN0IG0gPSBoZXhDb2xvci5tYXRjaCgvXiM/KFtcZGEtZl17Mn0pKFtcZGEtZl17Mn0pKFtcZGEtZl17Mn0pJC9pKTsKICAgIHJldHVybiBbCiAgICAgIHBhcnNlSW50KG1bMV0sIDE2KSwKICAgICAgcGFyc2VJbnQobVsyXSwgMTYpLAogICAgICBwYXJzZUludChtWzNdLCAxNiksCiAgICBdOwogIH07CgogIGNvbnN0IG1hdGNoQ29sb3IgPSAoZGF0YSwgY29tcFIsIGNvbXBHLCBjb21wQiwgY29tcEEpID0+IChwaXhlbFBvcykgPT4gewogICAgLy8gUGl4ZWwgY29sb3IgZXF1YWxzIGNvbXAgY29sb3I/CiAgICBjb25zdCByID0gZGF0YVtwaXhlbFBvc107CiAgICBjb25zdCBnID0gZGF0YVtwaXhlbFBvcyArIDFdOwogICAgY29uc3QgYiA9IGRhdGFbcGl4ZWxQb3MgKyAyXTsKICAgIGNvbnN0IGEgPSBkYXRhW3BpeGVsUG9zICsgM107CgogICAgcmV0dXJuIChyID09PSBjb21wUiAmJiBnID09PSBjb21wRyAmJiBiID09PSBjb21wQiAmJiBhID09PSBjb21wQSk7CiAgfTsKCiAgLyogZXNsaW50LWRpc2FibGUgbm8tcGFyYW0tcmVhc3NpZ24gKi8KICBjb25zdCBjb2xvclBpeGVsID0gKGRhdGEsIGZpbGxSLCBmaWxsRywgZmlsbEIsIHN0YXJ0Q29sb3IsIGFscGhhKSA9PiB7CiAgICBjb25zdCBtYXRjaGVyID0gbWF0Y2hDb2xvcihkYXRhLCAuLi5zdGFydENvbG9yKTsKCiAgICByZXR1cm4gKHBpeGVsUG9zKSA9PiB7CiAgICAgIC8vIFVwZGF0ZSBmaWxsIGNvbG9yIGluIG1hdHJpeAogICAgICBkYXRhW3BpeGVsUG9zXSA9IGZpbGxSOwogICAgICBkYXRhW3BpeGVsUG9zICsgMV0gPSBmaWxsRzsKICAgICAgZGF0YVtwaXhlbFBvcyArIDJdID0gZmlsbEI7CiAgICAgIGRhdGFbcGl4ZWxQb3MgKyAzXSA9IGFscGhhOwoKICAgICAgaWYgKCFtYXRjaGVyKHBpeGVsUG9zICsgNCkpIHsKICAgICAgICBkYXRhW3BpeGVsUG9zICsgNF0gPSBkYXRhW3BpeGVsUG9zICsgNF0gKiAwLjAxICsgZmlsbFIgKiAwLjk5OwogICAgICAgIGRhdGFbcGl4ZWxQb3MgKyA0ICsgMV0gPSBkYXRhW3BpeGVsUG9zICsgNCArIDFdICogMC4wMSArIGZpbGxHICogMC45OTsKICAgICAgICBkYXRhW3BpeGVsUG9zICsgNCArIDJdID0gZGF0YVtwaXhlbFBvcyArIDQgKyAyXSAqIDAuMDEgKyBmaWxsQiAqIDAuOTk7CiAgICAgICAgZGF0YVtwaXhlbFBvcyArIDQgKyAzXSA9IGRhdGFbcGl4ZWxQb3MgKyA0ICsgM10gKiAwLjAxICsgYWxwaGEgKiAwLjk5OwogICAgICB9CgogICAgICBpZiAoIW1hdGNoZXIocGl4ZWxQb3MgLSA0KSkgewogICAgICAgIGRhdGFbcGl4ZWxQb3MgLSA0XSA9IGRhdGFbcGl4ZWxQb3MgLSA0XSAqIDAuMDEgKyBmaWxsUiAqIDAuOTk7CiAgICAgICAgZGF0YVtwaXhlbFBvcyAtIDQgKyAxXSA9IGRhdGFbcGl4ZWxQb3MgLSA0ICsgMV0gKiAwLjAxICsgZmlsbEcgKiAwLjk5OwogICAgICAgIGRhdGFbcGl4ZWxQb3MgLSA0ICsgMl0gPSBkYXRhW3BpeGVsUG9zIC0gNCArIDJdICogMC4wMSArIGZpbGxCICogMC45OTsKICAgICAgICBkYXRhW3BpeGVsUG9zIC0gNCArIDNdID0gZGF0YVtwaXhlbFBvcyAtIDQgKyAzXSAqIDAuMDEgKyBhbHBoYSAqIDAuOTk7CiAgICAgIH0KICAgIH07CiAgfTsKICAvKiBlc2xpbnQtZW5hYmxlIG5vLXBhcmFtLXJlYXNzaWduICovCgogIGNvbnN0IGZsb29kRmlsbCA9ICh7CiAgICBpbWFnZSwKICAgIHdpZHRoLAogICAgaGVpZ2h0LAogICAgY29sb3IsCiAgICBnbG9iYWxBbHBoYSwKICAgIHN0YXJ0WCwKICAgIHN0YXJ0WSwKICAgIHN0YXJ0Q29sb3IsCiAgfSkgPT4gewogICAgY29uc3QgZmxvb3JYID0gTWF0aC5mbG9vcihzdGFydFgpOwogICAgY29uc3QgZmxvb3JZID0gTWF0aC5mbG9vcihzdGFydFkpOwogICAgY29uc3QgcGl4ZWxTdGFjayA9IFtbZmxvb3JYLCBmbG9vclldXTsKICAgIC8vIGhleCBuZWVkcyB0byBiZSB0cmFzZm9ybWVkIHRvIHJnYiBzaW5jZSBjb2xvckxheWVyIGFjY2VwdHMgUkdCCiAgICBjb25zdCBmaWxsQ29sb3IgPSBoZXhUb1JnYihjb2xvcik7CiAgICBjb25zdCBhbHBoYSA9IE1hdGgubWluKGdsb2JhbEFscGhhICogMTAgKiAyNTUsIDI1NSk7CiAgICBjb25zdCBjb2xvclBpeGVsJDEgPSBjb2xvclBpeGVsKGltYWdlLCAuLi5maWxsQ29sb3IsIHN0YXJ0Q29sb3IsIGFscGhhKTsKICAgIGNvbnN0IG1hdGNoQ29sb3IkMSA9IG1hdGNoQ29sb3IoaW1hZ2UsIC4uLnN0YXJ0Q29sb3IpOwogICAgY29uc3QgbWF0Y2hGaWxsQ29sb3IgPSBtYXRjaENvbG9yKGltYWdlLCAuLi5bLi4uZmlsbENvbG9yLCAyNTVdKTsKCiAgICAvLyBjaGVjayBpZiB3ZSdyZSB0cnlpbmcgdG8gZmlsbCB3aXRoIHRoZSBzYW1lIGNvbG91ciwgaWYgc28sIHN0b3AKICAgIGlmIChtYXRjaEZpbGxDb2xvcigoZmxvb3JZICogd2lkdGggKyBmbG9vclgpICogNCkpIHsKICAgICAgcmV0dXJuIGltYWdlOwogICAgfQoKICAgIHdoaWxlIChwaXhlbFN0YWNrLmxlbmd0aCkgewogICAgICBjb25zdCBuZXdQb3MgPSBwaXhlbFN0YWNrLnBvcCgpOwogICAgICBjb25zdCB4ID0gbmV3UG9zWzBdOwogICAgICBsZXQgeSA9IG5ld1Bvc1sxXTsKCiAgICAgIGxldCBwaXhlbFBvcyA9ICh5ICogd2lkdGggKyB4KSAqIDQ7CgogICAgICB3aGlsZSAoeS0tID49IDAgJiYgbWF0Y2hDb2xvciQxKHBpeGVsUG9zKSkgewogICAgICAgIHBpeGVsUG9zIC09IHdpZHRoICogNDsKICAgICAgfQogICAgICBwaXhlbFBvcyArPSB3aWR0aCAqIDQ7CgogICAgICArK3k7CgogICAgICBsZXQgcmVhY2hMZWZ0ID0gZmFsc2U7CiAgICAgIGxldCByZWFjaFJpZ2h0ID0gZmFsc2U7CgogICAgICB3aGlsZSAoeSsrIDwgaGVpZ2h0IC0gMSAmJiBtYXRjaENvbG9yJDEocGl4ZWxQb3MpKSB7CiAgICAgICAgY29sb3JQaXhlbCQxKHBpeGVsUG9zKTsKCiAgICAgICAgaWYgKHggPiAwKSB7CiAgICAgICAgICBpZiAobWF0Y2hDb2xvciQxKHBpeGVsUG9zIC0gNCkpIHsKICAgICAgICAgICAgaWYgKCFyZWFjaExlZnQpIHsKICAgICAgICAgICAgICBwaXhlbFN0YWNrLnB1c2goW3ggLSAxLCB5XSk7CiAgICAgICAgICAgICAgcmVhY2hMZWZ0ID0gdHJ1ZTsKICAgICAgICAgICAgfQogICAgICAgICAgfSBlbHNlIGlmIChyZWFjaExlZnQpIHsKICAgICAgICAgICAgcmVhY2hMZWZ0ID0gZmFsc2U7CiAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICBpZiAoeCA8IHdpZHRoIC0gMSkgewogICAgICAgICAgaWYgKG1hdGNoQ29sb3IkMShwaXhlbFBvcyArIDQpKSB7CiAgICAgICAgICAgIGlmICghcmVhY2hSaWdodCkgewogICAgICAgICAgICAgIHBpeGVsU3RhY2sucHVzaChbeCArIDEsIHldKTsKICAgICAgICAgICAgICByZWFjaFJpZ2h0ID0gdHJ1ZTsKICAgICAgICAgICAgfQogICAgICAgICAgfSBlbHNlIGlmIChyZWFjaFJpZ2h0KSB7CiAgICAgICAgICAgIHJlYWNoUmlnaHQgPSBmYWxzZTsKICAgICAgICAgIH0KICAgICAgICB9CgogICAgICAgIHBpeGVsUG9zICs9IHdpZHRoICogNDsKICAgICAgfQogICAgfQoKICAgIHJldHVybiBpbWFnZTsKICB9OwoKICBjb25zdCBvbk1lc3NhZ2UgPSAoeyBkYXRhIH0pID0+IHsKICAgIGNvbnN0IHJlc3VsdCA9IGZsb29kRmlsbChkYXRhKTsKICAgIGdsb2JhbFRoaXMucG9zdE1lc3NhZ2UoeyB0eXBlOiAnZmlsbC1yZXN1bHQnLCByZXN1bHQgfSwgW3Jlc3VsdC5idWZmZXJdKTsKICB9OwoKICBnbG9iYWxUaGlzLmFkZEV2ZW50TGlzdGVuZXIoJ21lc3NhZ2UnLCBvbk1lc3NhZ2UpOwoKfSkoKTsKLy8jIHNvdXJjZU1hcHBpbmdVUkw9d29ya2VyLmpzLm1hcAoK', null, false);
+/* eslint-enable */
+
 /* eslint-disable max-classes-per-file */
 // make a class for Point
 class Point {
@@ -23,7 +94,6 @@ class Mouse extends Point {
   }
 }
 
-const floodFillInterval = 100;
 const maxLineThickness = 50;
 const minLineThickness = 1;
 const lineThicknessRange = maxLineThickness - minLineThickness;
@@ -63,53 +133,6 @@ const lineDistance = (x1, y1, x2, y2) => {
   const ys = (y2 - y1) ** 2;
   return Math.sqrt(xs + ys);
 };
-
-const hexToRgb = (hexColor) => {
-  // Since input type color provides hex and ImageData accepts RGB need to transform
-  const m = hexColor.match(/^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
-  return [
-    parseInt(m[1], 16),
-    parseInt(m[2], 16),
-    parseInt(m[3], 16),
-  ];
-};
-
-const matchColor = (data, compR, compG, compB, compA) => (pixelPos) => {
-  // Pixel color equals comp color?
-  const r = data[pixelPos];
-  const g = data[pixelPos + 1];
-  const b = data[pixelPos + 2];
-  const a = data[pixelPos + 3];
-
-  return (r === compR && g === compG && b === compB && a === compA);
-};
-
-/* eslint-disable no-param-reassign */
-const colorPixel = (data, fillR, fillG, fillB, startColor, alpha) => {
-  const matcher = matchColor(data, ...startColor);
-
-  return (pixelPos) => {
-    // Update fill color in matrix
-    data[pixelPos] = fillR;
-    data[pixelPos + 1] = fillG;
-    data[pixelPos + 2] = fillB;
-    data[pixelPos + 3] = alpha;
-
-    if (!matcher(pixelPos + 4)) {
-      data[pixelPos + 4] = data[pixelPos + 4] * 0.01 + fillR * 0.99;
-      data[pixelPos + 4 + 1] = data[pixelPos + 4 + 1] * 0.01 + fillG * 0.99;
-      data[pixelPos + 4 + 2] = data[pixelPos + 4 + 2] * 0.01 + fillB * 0.99;
-      data[pixelPos + 4 + 3] = data[pixelPos + 4 + 3] * 0.01 + alpha * 0.99;
-    }
-
-    if (!matcher(pixelPos - 4)) {
-      data[pixelPos - 4] = data[pixelPos - 4] * 0.01 + fillR * 0.99;
-      data[pixelPos - 4 + 1] = data[pixelPos - 4 + 1] * 0.01 + fillG * 0.99;
-      data[pixelPos - 4 + 2] = data[pixelPos - 4 + 2] * 0.01 + fillB * 0.99;
-      data[pixelPos - 4 + 3] = data[pixelPos - 4 + 3] * 0.01 + alpha * 0.99;
-    }
-  };
-};
 /* eslint-enable no-param-reassign */
 
 const pointerEventHandler = (handler) => (event) => {
@@ -146,6 +169,8 @@ const setupPointerEvents = ({
     },
   };
 };
+
+// eslint-disable-next-line import/no-unresolved
 
 const DrawingMode = {
   DRAW: 'draw',
@@ -214,6 +239,8 @@ class Atrament extends AtramentEventTarget {
 
     this.modeInternal = DrawingMode.DRAW;
     this.adaptiveStroke = true;
+
+    this.setupFill();
 
     // update from config object
     ['weight', 'smoothing', 'adaptiveStroke', 'mode']
@@ -482,106 +509,48 @@ class Atrament extends AtramentEventTarget {
     return this.canvas.toDataURL();
   }
 
+  setupFill() {
+    this.fillWorker = new WorkerFactory();
+    this.fillWorker.addEventListener('message', ({ data }) => {
+      if (data.type === 'fill-result') {
+        this.filling = false;
+        this.dispatchEvent('fillend', {});
+        const imageData = new ImageData(data.result, this.canvas.width, this.canvas.height);
+        this.context.putImageData(imageData, 0, 0);
+
+        if (this.fillStack.length > 0) {
+          this.postToFillWorker(this.fillStack.shift());
+        }
+      }
+    });
+  }
+
   fill() {
-    const { mouse } = this;
-    const { context } = this;
-    // converting to Array because Safari 9
-    const startColor = Array.from(context.getImageData(mouse.x, mouse.y, 1, 1).data);
+    const { x, y } = this.mouse;
+    this.dispatchEvent('fillstart', { x, y });
+
+    const startColor = Array.from(this.context.getImageData(x, y, 1, 1).data);
+    const fillData = {
+      color: this.color,
+      globalAlpha: this.context.globalAlpha,
+      width: this.canvas.width,
+      height: this.canvas.height,
+      startColor,
+      startX: x,
+      startY: y,
+    };
 
     if (!this.filling) {
-      const { x, y } = mouse;
-      this.dispatchEvent('fillstart', { x, y });
       this.filling = true;
-      setTimeout(() => {
-        this.floodFill(mouse.x, mouse.y, startColor);
-      }, floodFillInterval);
+      this.postToFillWorker(fillData);
     } else {
-      this.fillStack.push([
-        mouse.x,
-        mouse.y,
-        startColor,
-      ]);
+      this.fillStack.push(fillData);
     }
   }
 
-  floodFill(_startX, _startY, startColor) {
-    const { context } = this;
-    const startX = Math.floor(_startX);
-    const startY = Math.floor(_startY);
-    const canvasWidth = context.canvas.width;
-    const canvasHeight = context.canvas.height;
-    const pixelStack = [[startX, startY]];
-    // hex needs to be trasformed to rgb since colorLayer accepts RGB
-    const fillColor = hexToRgb(this.color);
-    // Need to save current context with colors, we will update it
-    const colorLayer = context.getImageData(0, 0, context.canvas.width, context.canvas.height);
-    const alpha = Math.min(context.globalAlpha * 10 * 255, 255);
-    const colorPixel$1 = colorPixel(colorLayer.data, ...fillColor, startColor, alpha);
-    const matchColor$1 = matchColor(colorLayer.data, ...startColor);
-    const matchFillColor = matchColor(colorLayer.data, ...[...fillColor, 255]);
-
-    // check if we're trying to fill with the same colour, if so, stop
-    if (matchFillColor((startY * context.canvas.width + startX) * 4)) {
-      this.filling = false;
-      this.dispatchEvent('fillend', {});
-      return;
-    }
-
-    while (pixelStack.length) {
-      const newPos = pixelStack.pop();
-      const x = newPos[0];
-      let y = newPos[1];
-
-      let pixelPos = (y * canvasWidth + x) * 4;
-
-      while (y-- >= 0 && matchColor$1(pixelPos)) {
-        pixelPos -= canvasWidth * 4;
-      }
-      pixelPos += canvasWidth * 4;
-
-      ++y;
-
-      let reachLeft = false;
-      let reachRight = false;
-
-      while (y++ < canvasHeight - 1 && matchColor$1(pixelPos)) {
-        colorPixel$1(pixelPos);
-
-        if (x > 0) {
-          if (matchColor$1(pixelPos - 4)) {
-            if (!reachLeft) {
-              pixelStack.push([x - 1, y]);
-              reachLeft = true;
-            }
-          } else if (reachLeft) {
-            reachLeft = false;
-          }
-        }
-
-        if (x < canvasWidth - 1) {
-          if (matchColor$1(pixelPos + 4)) {
-            if (!reachRight) {
-              pixelStack.push([x + 1, y]);
-              reachRight = true;
-            }
-          } else if (reachRight) {
-            reachRight = false;
-          }
-        }
-
-        pixelPos += canvasWidth * 4;
-      }
-    }
-
-    // Update context with filled bucket!
-    context.putImageData(colorLayer, 0, 0);
-
-    if (this.fillStack.length) {
-      this.floodFill(...this.fillStack.shift());
-    } else {
-      this.filling = false;
-      this.dispatchEvent('fillend', {});
-    }
+  postToFillWorker(fillData) {
+    const image = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+    this.fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
   }
 }
 

@@ -37,12 +37,10 @@ atrament.addEventListener('clean', () => {
 });
 
 atrament.addEventListener('fillstart', ({ x, y }) => {
-  canvas.style.cursor = 'wait';
   log(`event: fillstart x: ${x} y: ${y}`);
 });
 
 atrament.addEventListener('fillend', () => {
-  canvas.style.cursor = 'crosshair';
   log('event: fillend');
 });
 

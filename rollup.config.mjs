@@ -1,4 +1,5 @@
 import terser from '@rollup/plugin-terser';
+import webWorkerLoader from 'rollup-plugin-web-worker-loader';
 
 export default {
   input: 'index.js',
@@ -13,5 +14,8 @@ export default {
       file: 'dist/cjs/index.js',
       format: 'cjs',
     },
+  ],
+  plugins: [
+    webWorkerLoader(),
   ],
 };

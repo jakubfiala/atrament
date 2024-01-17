@@ -445,50 +445,6 @@ class Atrament extends AtramentEventTarget {
     return context;
   }
 
-  #setupFill() {
-    this.#fillWorker.addEventListener('message', ({ data }) => {
-      if (data.type === 'fill-result') {
-        this.#filling = false;
-        this.dispatchEvent('fillend', {});
-
-        const imageData = new ImageData(data.result, this.canvas.width, this.canvas.height);
-        this.#context.putImageData(imageData, 0, 0);
-
-        if (this.#fillStack.length > 0) {
-          this.#postToFillWorker(this.#fillStack.shift());
-        }
-      }
-    });
-  }
-
-  #fill() {
-    const { x, y } = this.#mouse;
-    this.dispatchEvent('fillstart', { x, y });
-
-    const startColor = Array.from(this.#context.getImageData(x, y, 1, 1).data);
-    const fillData = {
-      color: this.color,
-      globalAlpha: this.#context.globalAlpha,
-      width: this.canvas.width,
-      height: this.canvas.height,
-      startColor,
-      startX: x,
-      startY: y,
-    };
-
-    if (!this.#filling) {
-      this.#filling = true;
-      this.#postToFillWorker(fillData);
-    } else {
-      this.#fillStack.push(fillData);
-    }
-  }
-
-  #postToFillWorker(fillData) {
-    const image = this.#context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    this.#fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
-  }
-
   #pointerMove(event) {
     const positions = event.getCoalescedEvents?.() || [event];
     positions.forEach((position) => {
@@ -557,6 +513,50 @@ class Atrament extends AtramentEventTarget {
     }
 
     this.endStroke(this.#mouse.x, this.#mouse.y);
+  }
+
+  #setupFill() {
+    this.#fillWorker.addEventListener('message', ({ data }) => {
+      if (data.type === 'fill-result') {
+        this.#filling = false;
+        this.dispatchEvent('fillend', {});
+
+        const imageData = new ImageData(data.result, this.canvas.width, this.canvas.height);
+        this.#context.putImageData(imageData, 0, 0);
+
+        if (this.#fillStack.length > 0) {
+          this.#postToFillWorker(this.#fillStack.shift());
+        }
+      }
+    });
+  }
+
+  #fill() {
+    const { x, y } = this.#mouse;
+    this.dispatchEvent('fillstart', { x, y });
+
+    const startColor = Array.from(this.#context.getImageData(x, y, 1, 1).data);
+    const fillData = {
+      color: this.color,
+      globalAlpha: this.#context.globalAlpha,
+      width: this.canvas.width,
+      height: this.canvas.height,
+      startColor,
+      startX: x,
+      startY: y,
+    };
+
+    if (!this.#filling) {
+      this.#filling = true;
+      this.#postToFillWorker(fillData);
+    } else {
+      this.#fillStack.push(fillData);
+    }
+  }
+
+  #postToFillWorker(fillData) {
+    const image = this.#context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+    this.#fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
   }
 }
 

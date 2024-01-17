@@ -61,102 +61,6 @@ export default class Atrament extends AtramentEventTarget {
     });
   }
 
-  static #setupCanvas(selector, config) {
-    let canvas;
-    // get canvas element
-    if (selector instanceof window.Node && selector.tagName === 'CANVAS') canvas = selector;
-    else if (typeof selector === 'string') canvas = document.querySelector(selector);
-    else throw new Error(`can't look for canvas based on '${selector}'`);
-    if (!canvas) throw new Error('canvas not found');
-
-    canvas.width = config.width || canvas.width;
-    canvas.height = config.height || canvas.height;
-    canvas.style.touchAction = 'none';
-
-    return canvas;
-  }
-
-  static #setupContext(canvas, config) {
-    const context = canvas.getContext('2d');
-    context.globalCompositeOperation = 'source-over';
-    context.globalAlpha = 1;
-    context.strokeStyle = config.color || 'rgba(0,0,0,1)';
-    context.lineCap = 'round';
-    context.lineJoin = 'round';
-
-    return context;
-  }
-
-  #pointerMove(event) {
-    const positions = event.getCoalescedEvents?.() || [event];
-    positions.forEach((position) => {
-      const x = position.offsetX;
-      const y = position.offsetY;
-
-      // draw if we should draw
-      if (this.#mouse.down && PathDrawingModes.includes(this.#mode)) {
-        const { x: newX, y: newY } = this.draw(
-          x,
-          y,
-          this.#mouse.previous.x,
-          this.#mouse.previous.y,
-        );
-
-        if (!this.#dirty
-          && this.#mode === DrawingMode.DRAW && (x !== this.#mouse.x || y !== this.#mouse.y)) {
-          this.#dirty = true;
-          this.dispatchEvent('dirty');
-        }
-
-        this.#mouse.set(x, y);
-        this.#mouse.previous.set(newX, newY);
-      } else {
-        this.#mouse.set(x, y);
-      }
-    });
-  }
-
-  #pointerDown(event) {
-    // update position just in case
-    this.#pointerMove(event);
-
-    // if we are filling - fill and return
-    if (this.mode === DrawingMode.FILL) {
-      this.#fill();
-      return;
-    }
-    // remember it
-    this.#mouse.previous.set(this.#mouse.x, this.#mouse.y);
-    this.#mouse.down = true;
-
-    this.beginStroke(this.#mouse.previous.x, this.#mouse.previous.y);
-  }
-
-  #pointerUp(event) {
-    if (this.mode === DrawingMode.FILL) {
-      return;
-    }
-
-    if (!this.#mouse.down) {
-      return;
-    }
-
-    this.#mouse.down = false;
-
-    if (this.#mouse.x === event.offsetX
-      && this.#mouse.y === event.offsetY && PathDrawingModes.includes(this.mode)) {
-      const { x: nx, y: ny } = this.draw(
-        this.#mouse.x,
-        this.#mouse.y,
-        this.#mouse.previous.x,
-        this.#mouse.previous.y,
-      );
-      this.#mouse.previous.set(nx, ny);
-    }
-
-    this.endStroke(this.#mouse.x, this.#mouse.y);
-  }
-
   /**
    * Begins a stroke at a given position
    *
@@ -263,6 +167,29 @@ export default class Atrament extends AtramentEventTarget {
     return { x: procX, y: procY };
   }
 
+  clear() {
+    if (!this.#dirty) {
+      return;
+    }
+
+    this.#dirty = false;
+    this.dispatchEvent('clean');
+
+    // make sure we're in the right compositing mode, and erase everything
+    if (this.#mode === DrawingMode.ERASE) {
+      this.#mode = DrawingMode.DRAW;
+      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
+      this.#mode = DrawingMode.ERASE;
+    } else {
+      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
+    }
+  }
+
+  destroy() {
+    this.clear();
+    this.#removePointerEventListeners?.();
+  }
+
   get color() {
     return this.#context.strokeStyle;
   }
@@ -325,27 +252,30 @@ export default class Atrament extends AtramentEventTarget {
     return this.#dirty;
   }
 
-  clear() {
-    if (!this.#dirty) {
-      return;
-    }
+  static #setupCanvas(selector, config) {
+    let canvas;
+    // get canvas element
+    if (selector instanceof window.Node && selector.tagName === 'CANVAS') canvas = selector;
+    else if (typeof selector === 'string') canvas = document.querySelector(selector);
+    else throw new Error(`can't look for canvas based on '${selector}'`);
+    if (!canvas) throw new Error('canvas not found');
 
-    this.#dirty = false;
-    this.dispatchEvent('clean');
+    canvas.width = config.width || canvas.width;
+    canvas.height = config.height || canvas.height;
+    canvas.style.touchAction = 'none';
 
-    // make sure we're in the right compositing mode, and erase everything
-    if (this.#mode === DrawingMode.ERASE) {
-      this.#mode = DrawingMode.DRAW;
-      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-      this.#mode = DrawingMode.ERASE;
-    } else {
-      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-    }
+    return canvas;
   }
 
-  destroy() {
-    this.clear();
-    this.#removePointerEventListeners?.();
+  static #setupContext(canvas, config) {
+    const context = canvas.getContext('2d');
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
+    context.strokeStyle = config.color || 'rgba(0,0,0,1)';
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+
+    return context;
   }
 
   #setupFill() {
@@ -391,5 +321,75 @@ export default class Atrament extends AtramentEventTarget {
   #postToFillWorker(fillData) {
     const image = this.#context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
     this.fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
+  }
+
+  #pointerMove(event) {
+    const positions = event.getCoalescedEvents?.() || [event];
+    positions.forEach((position) => {
+      const x = position.offsetX;
+      const y = position.offsetY;
+
+      // draw if we should draw
+      if (this.#mouse.down && PathDrawingModes.includes(this.#mode)) {
+        const { x: newX, y: newY } = this.draw(
+          x,
+          y,
+          this.#mouse.previous.x,
+          this.#mouse.previous.y,
+        );
+
+        if (!this.#dirty
+          && this.#mode === DrawingMode.DRAW && (x !== this.#mouse.x || y !== this.#mouse.y)) {
+          this.#dirty = true;
+          this.dispatchEvent('dirty');
+        }
+
+        this.#mouse.set(x, y);
+        this.#mouse.previous.set(newX, newY);
+      } else {
+        this.#mouse.set(x, y);
+      }
+    });
+  }
+
+  #pointerDown(event) {
+    // update position just in case
+    this.#pointerMove(event);
+
+    // if we are filling - fill and return
+    if (this.mode === DrawingMode.FILL) {
+      this.#fill();
+      return;
+    }
+    // remember it
+    this.#mouse.previous.set(this.#mouse.x, this.#mouse.y);
+    this.#mouse.down = true;
+
+    this.beginStroke(this.#mouse.previous.x, this.#mouse.previous.y);
+  }
+
+  #pointerUp(event) {
+    if (this.mode === DrawingMode.FILL) {
+      return;
+    }
+
+    if (!this.#mouse.down) {
+      return;
+    }
+
+    this.#mouse.down = false;
+
+    if (this.#mouse.x === event.offsetX
+      && this.#mouse.y === event.offsetY && PathDrawingModes.includes(this.mode)) {
+      const { x: nx, y: ny } = this.draw(
+        this.#mouse.x,
+        this.#mouse.y,
+        this.#mouse.previous.x,
+        this.#mouse.previous.y,
+      );
+      this.#mouse.previous.set(nx, ny);
+    }
+
+    this.endStroke(this.#mouse.x, this.#mouse.y);
   }
 }

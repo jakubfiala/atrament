@@ -13,6 +13,7 @@ module.exports = {
     'import/extensions': ['off'],
     'import/prefer-default-export': ['off'],
     'no-plusplus': ['off'],
+    'lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
   },
   overrides: [
     {

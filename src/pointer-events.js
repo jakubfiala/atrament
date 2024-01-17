@@ -24,11 +24,9 @@ export const setupPointerEvents = ({
   canvas.addEventListener('pointerdown', downListener);
   document.addEventListener('pointerup', upListener);
 
-  return {
-    removePointerEventListeners: () => {
-      canvas.removeEventListener('pointermove', moveListener);
-      canvas.removeEventListener('pointerdown', downListener);
-      document.removeEventListener('pointerup', upListener);
-    },
+  return () => {
+    canvas.removeEventListener('pointermove', moveListener);
+    canvas.removeEventListener('pointerdown', downListener);
+    document.removeEventListener('pointerup', upListener);
   };
 };

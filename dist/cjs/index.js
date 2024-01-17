@@ -179,8 +179,7 @@ const DrawingMode = {
   DISABLED: 'disabled',
 };
 
-const PathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
-
+const pathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
 const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode'];
 
 class Atrament extends AtramentEventTarget {
@@ -194,6 +193,7 @@ class Atrament extends AtramentEventTarget {
   #dirty = false;
   #filling = false;
   #fillStack = [];
+  #fillWorker = new WorkerFactory();
   #maxWeight = initialThickness + weightSpread;
   #mode = DrawingMode.DRAW;
   #mouse = new Mouse();
@@ -244,6 +244,7 @@ class Atrament extends AtramentEventTarget {
         time: performance.now() - this.strokeTimestamp,
       });
     }
+
     this.dispatchEvent('strokestart', { x, y });
   }
 
@@ -342,10 +343,10 @@ class Atrament extends AtramentEventTarget {
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.#mode === DrawingMode.ERASE) {
-      this.#mode = DrawingMode.DRAW;
+    if (this.mode === DrawingMode.ERASE) {
+      this.mode = DrawingMode.DRAW;
       this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-      this.#mode = DrawingMode.ERASE;
+      this.mode = DrawingMode.ERASE;
     } else {
       this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }
@@ -445,8 +446,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   #setupFill() {
-    this.fillWorker = new WorkerFactory();
-    this.fillWorker.addEventListener('message', ({ data }) => {
+    this.#fillWorker.addEventListener('message', ({ data }) => {
       if (data.type === 'fill-result') {
         this.#filling = false;
         this.dispatchEvent('fillend', {});
@@ -486,7 +486,7 @@ class Atrament extends AtramentEventTarget {
 
   #postToFillWorker(fillData) {
     const image = this.#context.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
-    this.fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
+    this.#fillWorker.postMessage({ image, ...fillData }, [image.buffer]);
   }
 
   #pointerMove(event) {
@@ -496,7 +496,7 @@ class Atrament extends AtramentEventTarget {
       const y = position.offsetY;
 
       // draw if we should draw
-      if (this.#mouse.down && PathDrawingModes.includes(this.#mode)) {
+      if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
         const { x: newX, y: newY } = this.draw(
           x,
           y,
@@ -535,7 +535,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerUp(event) {
-    if (this.mode === DrawingMode.FILL) {
+    if (this.#mode === DrawingMode.FILL) {
       return;
     }
 
@@ -546,7 +546,7 @@ class Atrament extends AtramentEventTarget {
     this.#mouse.down = false;
 
     if (this.#mouse.x === event.offsetX
-      && this.#mouse.y === event.offsetY && PathDrawingModes.includes(this.mode)) {
+      && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {
       const { x: nx, y: ny } = this.draw(
         this.#mouse.x,
         this.#mouse.y,

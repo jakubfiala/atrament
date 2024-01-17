@@ -91,10 +91,12 @@ sketchpad.color = '#ff485e'; //just like CSS
 - toggle between modes:
 
 ```js
-sketchpad.mode = 'erase'; // eraser tool
-sketchpad.mode = 'fill'; // click to fill area
-sketchpad.mode = 'draw'; // default
-sketchpad.mode = 'disabled'; // no modification to the canvas (will still fire stroke events)
+import { DrawingMode } from 'atrament';
+
+sketchpad.mode = DrawingMode.DRAW; // default
+sketchpad.mode = DrawingMode.ERASE; // eraser tool
+sketchpad.mode = DrawingMode.FILL; // click to fill area
+sketchpad.mode = DrawingMode.DISABLE; // no modification to the canvas (will still fire stroke events)
 ```
 
 - tweak smoothing - higher values make the drawings look much better, lower values make drawing feel a bit more responsive. Set to `0.85` by default.

@@ -29,7 +29,7 @@ const log = (...messages) => {
 const clearButton = document.getElementById('clear');
 atrament.addEventListener('dirty', () => {
   log('event: dirty');
-  clearButton.style.display = atrament.isDirty ? 'inline-block' : 'none';
+  clearButton.style.display = atrament.dirty ? 'inline-block' : 'none';
 });
 
 atrament.addEventListener('clean', () => {

@@ -2,9 +2,11 @@
 const R = 0;
 const G = 1;
 const B = 2;
-const A = 3;
+export const A = 3;
 
 export const PIXEL = 4;
+export const TRANSPARENT = 0;
+export const OPAQUE = 255;
 
 export const lineDistance = (x1, y1, x2, y2) => {
   // calculate euclidean distance between (x1, y1) and (x2, y2)
@@ -31,30 +33,37 @@ export const colorMatcher = (data, compR, compG, compB, compA) => (pixelPos) => 
   && data[pixelPos + A] === compA
 );
 
+export const colorMatcherIgnoreAlpha = (data, compR, compG, compB, compA) => (pixelPos) => {
+  const alpha = data[pixelPos + A];
+  if (alpha !== TRANSPARENT && alpha !== OPAQUE) {
+    return true;
+  }
+
+  return (
+    data[pixelPos + R] === compR
+    && data[pixelPos + G] === compG
+    && data[pixelPos + B] === compB
+    && data[pixelPos + A] === compA
+  );
+};
+
 /* eslint-disable no-param-reassign */
-export const pixelPainter = (data, fillR, fillG, fillB, startColor, alpha) => {
-  const matcher = colorMatcher(data, ...startColor);
+export const pixelPainter = (data, fillR, fillG, fillB, fillA) => (pixelPos) => {
+  // Update fill color in matrix
+  data[pixelPos + R] = fillR;
+  data[pixelPos + G] = fillG;
+  data[pixelPos + B] = fillB;
+  data[pixelPos + A] = fillA;
+};
 
-  return (pixelPos) => {
-    // Update fill color in matrix
-    data[pixelPos] = fillR;
-    data[pixelPos + 1] = fillG;
-    data[pixelPos + 2] = fillB;
-    data[pixelPos + 3] = alpha;
+export const pixelPainterMixAlpha = (data, fillR, fillG, fillB, fillA) => (pixelPos) => {
+  const oldAlpha = data[pixelPos + A] === OPAQUE ? TRANSPARENT : data[pixelPos + A] / OPAQUE;
+  const mixAlpha = 1 - oldAlpha;
 
-    if (!matcher(pixelPos + PIXEL)) {
-      data[pixelPos + PIXEL + R] = data[pixelPos + PIXEL + R] * 0.01 + fillR * 0.99;
-      data[pixelPos + PIXEL + G] = data[pixelPos + PIXEL + G] * 0.01 + fillG * 0.99;
-      data[pixelPos + PIXEL + B] = data[pixelPos + PIXEL + B] * 0.01 + fillB * 0.99;
-      data[pixelPos + PIXEL + A] = data[pixelPos + PIXEL + A] * 0.01 + alpha * 0.99;
-    }
-
-    if (!matcher(pixelPos - PIXEL)) {
-      data[pixelPos - PIXEL + R] = data[pixelPos - PIXEL + R] * 0.01 + fillR * 0.99;
-      data[pixelPos - PIXEL + G] = data[pixelPos - PIXEL + G] * 0.01 + fillG * 0.99;
-      data[pixelPos - PIXEL + B] = data[pixelPos - PIXEL + B] * 0.01 + fillB * 0.99;
-      data[pixelPos - PIXEL + A] = data[pixelPos - PIXEL + A] * 0.01 + alpha * 0.99;
-    }
-  };
+  // Update fill color in matrix
+  data[pixelPos + R] = Math.floor(oldAlpha * data[pixelPos + R] + mixAlpha * fillR);
+  data[pixelPos + G] = Math.floor(oldAlpha * data[pixelPos + G] + mixAlpha * fillG);
+  data[pixelPos + B] = Math.floor(oldAlpha * data[pixelPos + B] + mixAlpha * fillB);
+  data[pixelPos + A] = fillA;
 };
 /* eslint-enable no-param-reassign */

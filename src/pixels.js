@@ -33,23 +33,21 @@ export const colorMatcher = (data, compR, compG, compB, compA) => (pixelPos) => 
   && data[pixelPos + A] === compA
 );
 
-export const colorMatcherIgnoreAlpha = (data, compR, compG, compB, compA) => (pixelPos) => {
-  const alpha = data[pixelPos + A];
-  if (alpha !== TRANSPARENT && alpha !== OPAQUE) {
-    return true;
-  }
+export const colorMatcherIgnoreAlpha = (data, ...args) => {
+  const match = colorMatcher(data, ...args);
 
-  return (
-    data[pixelPos + R] === compR
-    && data[pixelPos + G] === compG
-    && data[pixelPos + B] === compB
-    && data[pixelPos + A] === compA
-  );
+  return (pixelPos) => {
+    const alpha = data[pixelPos + A];
+    if (alpha !== TRANSPARENT && alpha !== OPAQUE) {
+      return true;
+    }
+
+    return match(pixelPos);
+  };
 };
 
 /* eslint-disable no-param-reassign */
 export const pixelPainter = (data, fillR, fillG, fillB, fillA) => (pixelPos) => {
-  // Update fill color in matrix
   data[pixelPos + R] = fillR;
   data[pixelPos + G] = fillG;
   data[pixelPos + B] = fillB;
@@ -57,13 +55,21 @@ export const pixelPainter = (data, fillR, fillG, fillB, fillA) => (pixelPos) => 
 };
 
 export const pixelPainterMixAlpha = (data, fillR, fillG, fillB, fillA) => (pixelPos) => {
-  const oldAlpha = data[pixelPos + A] === OPAQUE ? TRANSPARENT : data[pixelPos + A] / OPAQUE;
-  const mixAlpha = 1 - oldAlpha;
+  const oldAlpha = data[pixelPos + A];
+  // calculate ratio of old vs. new colour to be alpha-mixed
+  const mixAlphaOld = oldAlpha === OPAQUE
+    ? TRANSPARENT
+    : oldAlpha / OPAQUE;
+  const mixAlphaNew = 1 - mixAlphaOld;
 
-  // Update fill color in matrix
-  data[pixelPos + R] = Math.floor(oldAlpha * data[pixelPos + R] + mixAlpha * fillR);
-  data[pixelPos + G] = Math.floor(oldAlpha * data[pixelPos + G] + mixAlpha * fillG);
-  data[pixelPos + B] = Math.floor(oldAlpha * data[pixelPos + B] + mixAlpha * fillB);
-  data[pixelPos + A] = fillA;
+  const paint = pixelPainter(
+    data,
+    Math.floor(mixAlphaOld * data[pixelPos + R] + mixAlphaNew * fillR),
+    Math.floor(mixAlphaOld * data[pixelPos + G] + mixAlphaNew * fillG),
+    Math.floor(mixAlphaOld * data[pixelPos + B] + mixAlphaNew * fillB),
+    fillA,
+  );
+
+  return paint(pixelPos);
 };
 /* eslint-enable no-param-reassign */

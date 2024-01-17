@@ -339,16 +339,13 @@ export default class Atrament extends AtramentEventTarget {
     }
   }
 
-  toImage() {
-    return this.canvas.toDataURL();
-  }
-
   setupFill() {
     this.fillWorker = new FillWorker();
     this.fillWorker.addEventListener('message', ({ data }) => {
       if (data.type === 'fill-result') {
         this.filling = false;
         this.dispatchEvent('fillend', {});
+
         const imageData = new ImageData(data.result, this.canvas.width, this.canvas.height);
         this.context.putImageData(imageData, 0, 0);
 

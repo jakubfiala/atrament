@@ -7,6 +7,13 @@ import {
   colorMatcherIgnoreAlpha,
 } from '../pixels.js';
 
+/**
+ * Stack- and span-based flood fill algorithm
+ * see https://en.wikipedia.org/wiki/Flood_fill#Span_filling
+ *
+ * @param {Object} options options object
+ * @returns {UInt8ClampedArray} the modified pixels
+ */
 const floodFill = ({
   image,
   width,
@@ -33,7 +40,7 @@ const floodFill = ({
   // when looking for the span start, we ignore the alpha value if filling a non-opaque area
   // this ensures that we'll mix the fill into antialiased edges
   const colorMatcherSpanStart = fillingNonOpaque ? colorMatcherIgnoreAlpha : colorMatcher;
-  const matchStartColorSpanStart = colorMatcherSpanStart(image, ...startColor);
+  const matchSpanStartColor = colorMatcherSpanStart(image, ...startColor);
   // for all other cases, we look for the start colour exactly
   const matchStartColor = colorMatcherIgnoreAlpha(image, ...startColor);
 
@@ -53,7 +60,7 @@ const floodFill = ({
     // start moving directly up from our start position
     // until we find a different colour to the start colour
     // this is the beginning of our span
-    while (columnPosition-- >= 0 && matchStartColorSpanStart(pixelPos)) {
+    while (columnPosition-- >= 0 && matchSpanStartColor(pixelPos)) {
       pixelPos -= row;
     }
     // move one row down (topmost pixel of fillable area)

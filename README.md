@@ -6,13 +6,8 @@
 
 ![](demo/img/muchotravka.png)
 
-[![Build Status](https://travis-ci.org/jakubfiala/atrament.js.svg?branch=master)](https://travis-ci.org/jakubfiala/atrament.js)
-
 Atrament is a library that enables the user to draw smooth, natural drawings and handwriting on the HTML canvas.
-The algorithm was originally developed about 2 weeks after I started learning JavaScript, as I wanted to build a
-collaborative drawing space on the web, which ended up being [1WALL](http://fiala.uk/1wall). I wanted the drawing to
-feel natural and comfortable, and the result to be smooth and pleasing. Years later, I've taken the algorithm,
-improved it, rewrote it in ES6 and made it into a neat little library.
+Its goal is for drawing to feel natural and comfortable, and the result to be smooth and pleasing.
 
 **FEATURES:**
 
@@ -27,9 +22,6 @@ Enjoy!
 
 - [Atrament](#atrament)
   - [Installation](#installation)
-    - [as a module](#as-a-module)
-    - [script tag](#script-tag)
-    - [polymer](#polymer)
   - [Usage](#usage)
   - [Options \& config](#options--config)
   - [Events](#events)
@@ -42,20 +34,10 @@ Enjoy!
 
 ## Installation
 
-#### as a module
-
-If you're using a tool like webpack or browserify to bundle your code, you can install it using npm.
+If you're using a tool like `rollup` or `webpack` to bundle your code, you can install it using npm.
 
 - install atrament as a dependency using `npm install --save atrament`.
 - You can access the Atrament class using `import { Atrament } from 'atrament';`
-
-#### script tag
-
-Include the script located at [dist/atrament.min.js](https://github.com/jakubfiala/atrament.js/raw/master/dist/atrament.min.js) in the `<head>` tag of your HTML.
-
-#### polymer
-
-Thanks to [rubenstolk](https://github.com/rubenstolk), you can also use the [sc-atrament](https://github.com/safetychanger/sc-atrament) Polymer element.
 
 ## Usage
 
@@ -131,15 +113,6 @@ sketchpad.adaptiveStroke = false;
 
 ```js
 sketchpad.recordStrokes = true;
-```
-
-- export as image:
-
-```js
-//we have to get the dataURL of the image
-const dataURL = sketchpad.toImage();
-//then we can, for instance, open a new window with it
-window.open(dataURL);
 ```
 
 ## Events

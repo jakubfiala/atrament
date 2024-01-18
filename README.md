@@ -56,7 +56,7 @@ If you're using a tool like `rollup` or `webpack` to bundle your code, you can i
 - in your JavaScript, create an `Atrament` instance passing it your canvas object:
 
 ```js
-import { Atrament } from 'atrament';
+import Atrament from 'atrament';
 
 const canvas = document.querySelector('#sketchpad');
 const sketchpad = new Atrament(canvas);

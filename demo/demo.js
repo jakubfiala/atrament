@@ -42,7 +42,10 @@ recordButton.addEventListener('click', () => {
   document.querySelector('#recordButton').value = 'Recording...';
 });
 
-playButton.addEventListener('click', () => playRecorded(atrament));
+playButton.addEventListener('click', () => {
+  atrament.clear();
+  playRecorded(atrament);
+});
 
 weightInput.addEventListener('input', ({ target: { value } }) => {
   atrament.weight = parseFloat(value);
@@ -85,7 +88,7 @@ atrament.addEventListener('strokestart', () => log('event: strokestart'));
 atrament.addEventListener('strokeend', () => log('event: strokeend'));
 
 atrament.addEventListener('strokerecorded', ({ stroke }) => {
-  log(`event: strokerecorded - ${stroke.points.length} points`);
+  log(`event: strokerecorded - ${stroke.segments.length} segments`);
   setRecorded(stroke);
 
   atrament.recordStrokes = false;
@@ -93,4 +96,4 @@ atrament.addEventListener('strokerecorded', ({ stroke }) => {
   document.querySelector('#playButton').hidden = false;
 });
 
-atrament.addEventListener('pointdrawn', () => log('event: pointdrawn'));
+atrament.addEventListener('segmentdrawn', () => log('event: segmentdrawn'));

@@ -6,6 +6,8 @@
   and Safari 15 or above. If your application must support older browsers, please use version 3.
 - the `Atrament` class is now a default export
 - the `mode` setter now only accepts symbols exported from the library (e.g. `MODE_DRAW`). If anything else is passed, an error is thrown.
+- the stroke object now stores an array of `segments`, instead of `points`. Each segment then contains a `point`. This should clarify the data model and help avoid repetitive code such as `stroke.points.forEach((point) => point.point)`.
+- because of the above, the `pointdrawn` event has been renamed to `segmentdrawn`
 - the `toImage()` method has been removed - please use `canvas.toDataURL()` to achieve the same effect
 - the `isDirty()` method has been replaced by the `dirty` getter, making it more consistent with the rest of the API
 - the `Atrament` class now uses private fields and methods. A number of undocumented fields+methods are now not accessible from the outside.

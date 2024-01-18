@@ -30,6 +30,7 @@ Enjoy!
   - [Installation](#installation)
   - [Usage](#usage)
   - [Options \& config](#options--config)
+  - [Data model](#data-model)
   - [Events](#events)
     - [Dirty/clean](#dirtyclean)
     - [Stroke start/end](#stroke-startend)
@@ -123,6 +124,13 @@ sketchpad.adaptiveStroke = false;
 sketchpad.recordStrokes = true;
 ```
 
+## Data model
+
+- Atrament models its output as a set of independent _strokes_. Only one stroke can be drawn at a time.
+- Each stroke consists of a list of _segments_, which correspond to all the pointer positions recorded during drawing.
+- Each segment consists of a _point_ which contains `x` and `y` coordinates, and a `time` which is the number of milliseconds since the stroke began, until the segment was drawn.
+- Each stroke also contains information about the drawing settings at the time of drawing (see Events > Stroke recording).
+
 ## Events
 
 ### Dirty/clean
@@ -158,8 +166,10 @@ sketchpad.addEventListener('fillend', () => console.info('fillend'));
 
 ### Stroke recording
 
+The following events only fire if the `recordStrokes` property is set to true.
+
 `strokerecorded` fires at the same time as `strokeend` and contains data necessary for reconstructing the stroke.
-`pointdrawn` fires during stroke recording every time the `draw` method is called. It contains the same data as `strokerecorded`.
+`segmentdrawn` fires during stroke recording every time the `draw` method is called. It contains the same data as `strokerecorded`.
 
 ```js
 sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
@@ -167,7 +177,7 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
 );
 /*
 {
-  points: [
+  segments: [
     {
       point: { x, y },
       time,
@@ -179,13 +189,15 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
   adaptiveStroke,
 }
 */
-sketchpad.addEventListener('pointdrawn', ({ stroke }) => console.info(stroke));
+sketchpad.addEventListener('segmentdrawn', ({ stroke }) =>
+  console.info(stroke),
+);
 ```
 
 ## Programmatic drawing
 
 To enable functionality such as undo/redo, stroke post-processing, and SVG export in apps using Atrament, the library
-can be configured to record the "pen strokes".
+can be configured to record and programmatically draw the strokes.
 
 The first step is to enable `recordStrokes`, and add a listener for the `strokerecorded` event:
 
@@ -207,15 +219,15 @@ atrament.color = stroke.color;
 atrament.adaptiveStroke = stroke.adaptiveStroke;
 
 // don't want to modify original data
-const points = stroke.points.slice();
+const segments = stroke.segments.slice();
 
-const firstPoint = points.shift().point;
+const firstPoint = segments.shift().point;
 // beginStroke moves the "pen" to the given position and starts the path
 atrament.beginStroke(firstPoint.x, firstPoint.y);
 
 let prevPoint = firstPoint;
-while (points.length > 0) {
-  const point = points.shift().point;
+while (segments.length > 0) {
+  const point = segments.shift().point;
 
   // the `draw` method accepts the current real coordinates
   // (i. e. actual cursor position), and the previous processed (filtered)

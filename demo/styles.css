@@ -1,0 +1,113 @@
+canvas {
+  cursor: crosshair;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+form {
+  z-index: 3;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  padding: 1em;
+  color: white;
+  box-sizing: border-box;
+  width: 100vw;
+}
+
+@media screen and (min-width: 768px) {
+  form {
+    width: 16rem;
+  }
+}
+
+button,
+input,
+label,
+select {
+  font: inherit;
+}
+
+input[type='checkbox'] {
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+
+body {
+  --grid-size: 20px;
+  background-size: var(--grid-size) var(--grid-size);
+  background-color: rgba(0, 0, 0, 0.05);
+  background-image: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.2) 1px,
+    rgba(0, 0, 0, 0) 1px
+  );
+  font-family: sans-serif;
+  font-size: 18px;
+  padding: 0;
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.8em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.pickr {
+  display: inline-block;
+  height: 1.75em;
+  overflow: hidden;
+  border: solid 2px;
+  border-radius: 5px;
+  margin-bottom: 0;
+  vertical-align: middle;
+  margin-left: 5px;
+}
+
+#toolbar-toggle {
+  display: inline-block;
+  height: 36px;
+  padding: 0;
+  line-height: 0;
+  margin-left: 0.5em;
+}
+
+#github {
+  display: flex;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.toolbar {
+  display: none;
+  padding-top: 0.5em;
+}
+
+.toolbar-visible {
+  display: block;
+}
+
+.toolbar > div {
+  margin-bottom: 1em;
+}
+
+@media screen and (min-width: 768px) {
+  #toolbar-toggle {
+    display: none;
+  }
+
+  .toolbar {
+    display: block;
+  }
+}
+
+#events {
+  font-family: monospace;
+  font-size: 0.7em;
+}

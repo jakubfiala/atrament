@@ -4,6 +4,7 @@
 
 - Atrament now only supports evergreen browsers ((Firefox, Chrome and Chromium-based browsers)
   and Safari 15 or above. If your application must support older browsers, please use version 3.
+- the `Atrament` class is now a default export
 - the `mode` setter now only accepts symbols exported from the library (e.g. `MODE_DRAW`). If anything else is passed, an error is thrown.
 - the `toImage()` method has been removed - please use `canvas.toDataURL()` to achieve the same effect
 - the `isDirty()` method has been replaced by the `dirty` getter, making it more consistent with the rest of the API

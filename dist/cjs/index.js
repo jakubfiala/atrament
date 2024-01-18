@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var WorkerClass = null;
 
 try {
@@ -560,4 +562,8 @@ class Atrament extends AtramentEventTarget {
   }
 }
 
-exports.Atrament = Atrament;
+exports.MODE_DISABLED = MODE_DISABLED;
+exports.MODE_DRAW = MODE_DRAW;
+exports.MODE_ERASE = MODE_ERASE;
+exports.MODE_FILL = MODE_FILL;
+exports.default = Atrament;

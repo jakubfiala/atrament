@@ -13,6 +13,7 @@ export default {
     {
       file: 'dist/cjs/index.js',
       format: 'cjs',
+      exports: 'named',
     },
   ],
   plugins: [

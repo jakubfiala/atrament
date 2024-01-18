@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jakubfiala/atrament.js.git"
+    "url": "git+https://github.com/jakubfiala/atrament.git"
   },
   "keywords": [
     "canvas",
@@ -22,9 +22,9 @@
   "author": "Jakub Fiala",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
-    "url": "https://github.com/jakubfiala/atrament.js/issues"
+    "url": "https://github.com/jakubfiala/atrament/issues"
   },
-  "homepage": "https://github.com/jakubfiala/atrament.js#readme",
+  "homepage": "https://github.com/jakubfiala/atrament#readme",
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",

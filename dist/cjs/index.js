@@ -240,10 +240,6 @@ class Atrament extends AtramentEventTarget {
 
     if (this.recordStrokes) {
       this.strokeTimestamp = performance.now();
-      this.#strokeMemory.push({
-        point: new Point(x, y),
-        time: performance.now() - this.strokeTimestamp,
-      });
     }
 
     this.dispatchEvent('strokestart', { x, y });
@@ -257,13 +253,6 @@ class Atrament extends AtramentEventTarget {
    */
   endStroke(x, y) {
     this.#context.closePath();
-
-    if (this.recordStrokes) {
-      this.#strokeMemory.push({
-        point: new Point(x, y),
-        time: performance.now() - this.strokeTimestamp,
-      });
-    }
     this.dispatchEvent('strokeend', { x, y });
 
     if (this.recordStrokes) {
@@ -274,8 +263,8 @@ class Atrament extends AtramentEventTarget {
   }
 
   /**
-   * Draws a smooth quadratic curve with adaptive stroke thickness
-   * between two points
+   * Draws the next stroke segment as a smooth quadratic curve
+   * with adaptive stroke thickness between two points.
    *
    * @param {number} x current X coordinate
    * @param {number} y current Y coordinate
@@ -289,7 +278,7 @@ class Atrament extends AtramentEventTarget {
         time: performance.now() - this.strokeTimestamp,
       });
 
-      this.dispatchEvent('pointdrawn', { stroke: this.currentStroke });
+      this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
     }
 
     // calculate distance from previous point
@@ -408,7 +397,7 @@ class Atrament extends AtramentEventTarget {
 
   get currentStroke() {
     return {
-      points: this.#strokeMemory.slice(),
+      segments: this.#strokeMemory.slice(),
       mode: this.mode,
       weight: this.weight,
       smoothing: this.smoothing,

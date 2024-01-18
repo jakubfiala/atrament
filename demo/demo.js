@@ -86,7 +86,6 @@ atrament.addEventListener('strokeend', () => log('event: strokeend'));
 
 atrament.addEventListener('strokerecorded', ({ stroke }) => {
   log(`event: strokerecorded - ${stroke.points.length} points`);
-
   setRecorded(stroke);
 
   atrament.recordStrokes = false;

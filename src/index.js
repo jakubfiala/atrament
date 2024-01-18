@@ -80,10 +80,6 @@ export default class Atrament extends AtramentEventTarget {
 
     if (this.recordStrokes) {
       this.strokeTimestamp = performance.now();
-      this.#strokeMemory.push({
-        point: new Point(x, y),
-        time: performance.now() - this.strokeTimestamp,
-      });
     }
 
     this.dispatchEvent('strokestart', { x, y });
@@ -97,13 +93,6 @@ export default class Atrament extends AtramentEventTarget {
    */
   endStroke(x, y) {
     this.#context.closePath();
-
-    if (this.recordStrokes) {
-      this.#strokeMemory.push({
-        point: new Point(x, y),
-        time: performance.now() - this.strokeTimestamp,
-      });
-    }
     this.dispatchEvent('strokeend', { x, y });
 
     if (this.recordStrokes) {

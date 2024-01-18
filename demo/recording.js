@@ -13,8 +13,8 @@ export const setRecorded = (stroke) => Object.assign(recordedStroke, stroke);
 
 export const playRecorded = async (atrament) => {
   // offset the drawing to avoid drawing at the exact same place
-  const offsetX = Math.floor(Math.random() * 100) - 50;
-  const offsetY = Math.floor(Math.random() * 100) - 50;
+  const offsetX = 0;// Math.floor(Math.random() * 100) - 50;
+  const offsetY = 0;// Math.floor(Math.random() * 100) - 50;
 
   // set drawing options
   /* eslint-disable no-param-reassign */
@@ -35,7 +35,7 @@ export const playRecorded = async (atrament) => {
   atrament.beginStroke(prevPoint.x, prevPoint.y);
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const point of recordedStroke.points.slice(1)) {
+  for (const point of recordedStroke.points) {
     // waiting for time from reference
     // eslint-disable-next-line no-await-in-loop
     await waitUntil(reference, point.time);

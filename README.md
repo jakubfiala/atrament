@@ -6,10 +6,16 @@
 
 ![](demo/img/muchotravka.png)
 
-Atrament is a library that enables the user to draw smooth, natural drawings and handwriting on the HTML canvas.
+Atrament is a library for drawing and handwriting on the HTML canvas.
 Its goal is for drawing to feel natural and comfortable, and the result to be smooth and pleasing.
+Atrament does not store the stroke paths itself - instead, it draws directly onto the canvas bitmap,
+just like an ink pen onto a piece of paper ("atrament" means ink in Slovak and Polish).
+This makes it suitable for certain applications, and not quite ideal for others.
 
-**FEATURES:**
+**Note:** From version 4, Atrament will only support evergeen browsers (Firefox, Chrome and Chromium-based browsers)
+and Safari 15 or above. If your application must support older browsers, please use version 3.
+
+**Features:**
 
 - Draw/Fill/Erase modes
 - Adjustable adaptive smoothing

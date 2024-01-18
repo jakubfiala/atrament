@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <title>atrament.js ~ demo</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"/> <!-- 'classic' theme -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css"
+    />
+    <!-- 'classic' theme -->
     <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
     <script type="module" defer src="demo.js"></script>
     <style>
@@ -72,7 +76,19 @@
       </button>
       <br />
       <label>Record</label><br />
-      <input id="recordButton" type="button" value="Record a stroke" onclick="recordAStroke()"/><input id="playButton" type="button" value="Draw the recorded stroke" style="display:none" onclick="playRecorded()"/><br />
+      <input
+        id="recordButton"
+        type="button"
+        value="Record a stroke"
+        onclick="recordAStroke()"
+      />
+      <input
+        id="playButton"
+        type="button"
+        value="Draw recorded stroke (random offset)"
+        style="display: none"
+        onclick="playRecorded()"
+      /><br />
       <label>Thickness</label><br />
       <input
         type="range"
@@ -106,16 +122,17 @@
         <option value="draw" default>Draw</option>
         <option value="fill" default>Fill</option>
         <option value="erase" default>Erase</option>
-        <option value="disabled" default>Disabled</option>
-      </select><br />
+        <option value="disabled" default>Disabled</option></select
+      ><br />
       <label>Colour</label>
-      <div id="color-picker"></div><br />
+      <div id="color-picker"></div>
+      <br />
       <output><pre id="events"></pre></output>
     </form>
     <canvas id="sketcher"></canvas>
     <a href="https://github.com/jakubfiala/atrament.js"
       ><img
-        style="position: fixed; top: 0; right: 0; border: 0; z-index: 3;"
+        style="position: fixed; top: 0; right: 0; border: 0; z-index: 3"
         src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
         alt="Fork me on GitHub"
         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"

@@ -12,7 +12,7 @@ Atrament does not store the stroke paths itself - instead, it draws directly ont
 just like an ink pen onto a piece of paper ("atrament" means ink in Slovak and Polish).
 This makes it suitable for certain applications, and not quite ideal for others.
 
-**Note:** From version 4, Atrament will only support evergeen browsers (Firefox, Chrome and Chromium-based browsers)
+⚠️ **Note:** From version 4, Atrament will only support evergeen browsers (Firefox, Chrome and Chromium-based browsers)
 and Safari 15 or above. If your application must support older browsers, please use version 3.
 
 **Features:**

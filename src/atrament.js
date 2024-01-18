@@ -45,7 +45,7 @@ export default class Atrament extends AtramentEventTarget {
 
   constructor(selector, config = {}) {
     if (typeof window === 'undefined') {
-      throw new Error('Looks like we\'re not running in a browser');
+      throw new Error('atrament: looks like we\'re not running in a browser');
     }
 
     super();
@@ -203,7 +203,7 @@ export default class Atrament extends AtramentEventTarget {
   }
 
   set color(c) {
-    if (typeof c !== 'string') throw new Error('wrong argument type');
+    if (typeof c !== 'string') throw new Error('atrament: wrong argument type setting color');
     this.#context.strokeStyle = c;
   }
 
@@ -212,7 +212,7 @@ export default class Atrament extends AtramentEventTarget {
   }
 
   set weight(w) {
-    if (typeof w !== 'number') throw new Error('wrong argument type');
+    if (typeof w !== 'number') throw new Error('atrament: wrong argument type setting weight');
     this.thickness = w;
 
     this.#maxWeight = w + WEIGHT_SPREAD;
@@ -266,8 +266,8 @@ export default class Atrament extends AtramentEventTarget {
     // get canvas element
     if (selector instanceof window.Node && selector.tagName === 'CANVAS') canvas = selector;
     else if (typeof selector === 'string') canvas = document.querySelector(selector);
-    else throw new Error(`can't look for canvas based on '${selector}'`);
-    if (!canvas) throw new Error('canvas not found');
+    else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
+    if (!canvas) throw new Error('atrament: canvas not found');
 
     canvas.width = config.width || canvas.width;
     canvas.height = config.height || canvas.height;

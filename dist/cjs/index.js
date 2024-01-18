@@ -94,15 +94,6 @@ class Mouse extends Point {
   }
 }
 
-const maxLineThickness = 50;
-const minLineThickness = 1;
-const lineThicknessRange = maxLineThickness - minLineThickness;
-const thicknessIncrement = 0.5;
-const minSmoothingFactor = 0.87;
-const initialSmoothingFactor = 0.85;
-const weightSpread = 10;
-const initialThickness = 2;
-
 class AtramentEventTarget {
   constructor() {
     this.eventListeners = new Map();
@@ -170,41 +161,49 @@ const setupPointerEvents = ({
   };
 };
 
+const MAX_LINE_THICKNESS = 50;
+
+const MIN_LINE_THICKNESS = 1;
+const LINE_THICKNESS_RANGE = MAX_LINE_THICKNESS - MIN_LINE_THICKNESS;
+const THICKNESS_INCREMENT = 0.5;
+const MIN_SMOOTHING_FACTOR = 0.87;
+const INITIAL_SMOOTHING_FACTOR = 0.85;
+const WEIGHT_SPREAD = 10;
+const INITIAL_THICKNESS = 2;
+
 // eslint-disable-next-line import/no-unresolved
 
-const DrawingMode = {
-  DRAW: 'draw',
-  ERASE: 'erase',
-  FILL: 'fill',
-  DISABLED: 'disabled',
-};
+const MODE_DRAW = Symbol('atrament mode - draw');
+const MODE_ERASE = Symbol('atrament mode - erase');
+const MODE_FILL = Symbol('atrament mode - fill');
+const MODE_DISABLED = Symbol('atrament mode - disabled');
 
-const pathDrawingModes = [DrawingMode.DRAW, DrawingMode.ERASE];
+const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
 const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
   canvas;
   recordStrokes = false;
-  smoothing = initialSmoothingFactor;
-  thickness = initialThickness;
+  smoothing = INITIAL_SMOOTHING_FACTOR;
+  thickness = INITIAL_THICKNESS;
 
   #context;
   #dirty = false;
   #filling = false;
   #fillStack = [];
   #fillWorker = new WorkerFactory();
-  #maxWeight = initialThickness + weightSpread;
-  #mode = DrawingMode.DRAW;
+  #maxWeight = INITIAL_THICKNESS + WEIGHT_SPREAD;
+  #mode = MODE_DRAW;
   #mouse = new Mouse();
   #removePointerEventListeners;
   #strokeMemory = [];
-  #targetThickness = initialThickness;
-  #weight = initialThickness;
+  #targetThickness = INITIAL_THICKNESS;
+  #weight = INITIAL_THICKNESS;
 
   constructor(selector, config = {}) {
     if (typeof window === 'undefined') {
-      throw new Error('Looks like we\'re not running in a browser');
+      throw new Error('atrament: looks like we\'re not running in a browser');
     }
 
     super();
@@ -299,7 +298,7 @@ class Atrament extends AtramentEventTarget {
     // and when we're drawing small detailed stuff, we have more control
     // also we hard clip at 1
     const smoothingFactor = Math.min(
-      minSmoothingFactor,
+      MIN_SMOOTHING_FACTOR,
       this.smoothing + (rawDist - 60) / 3000,
     );
 
@@ -312,13 +311,13 @@ class Atrament extends AtramentEventTarget {
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
-      this.#targetThickness = ((dist - minLineThickness) / lineThicknessRange)
-        * (this.#maxWeight - this.#weight) + this.#weight;
+      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
+      this.#targetThickness = thicknessRatio * (this.#maxWeight - this.#weight) + this.#weight;
       // approach the target gradually
       if (this.thickness > this.#targetThickness) {
-        this.thickness -= thicknessIncrement;
+        this.thickness -= THICKNESS_INCREMENT;
       } else if (this.thickness < this.#targetThickness) {
-        this.thickness += thicknessIncrement;
+        this.thickness += THICKNESS_INCREMENT;
       }
       // set line width
       this.#context.lineWidth = this.thickness;
@@ -343,10 +342,10 @@ class Atrament extends AtramentEventTarget {
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.mode === DrawingMode.ERASE) {
-      this.mode = DrawingMode.DRAW;
+    if (this.mode === MODE_ERASE) {
+      this.mode = MODE_DRAW;
       this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
-      this.mode = DrawingMode.ERASE;
+      this.mode = MODE_ERASE;
     } else {
       this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }
@@ -362,7 +361,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   set color(c) {
-    if (typeof c !== 'string') throw new Error('wrong argument type');
+    if (typeof c !== 'string') throw new Error('atrament: wrong argument type setting color');
     this.#context.strokeStyle = c;
   }
 
@@ -371,10 +370,10 @@ class Atrament extends AtramentEventTarget {
   }
 
   set weight(w) {
-    if (typeof w !== 'number') throw new Error('wrong argument type');
+    if (typeof w !== 'number') throw new Error('atrament: wrong argument type setting weight');
     this.thickness = w;
 
-    this.#maxWeight = w + weightSpread;
+    this.#maxWeight = w + WEIGHT_SPREAD;
     this.#targetThickness = w;
     this.#weight = w;
   }
@@ -384,23 +383,24 @@ class Atrament extends AtramentEventTarget {
   }
 
   set mode(m) {
-    if (typeof m !== 'string') throw new Error('wrong argument type');
     switch (m) {
-      case DrawingMode.ERASE:
-        this.#mode = DrawingMode.ERASE;
+      case MODE_ERASE:
+        this.#mode = MODE_ERASE;
         this.#context.globalCompositeOperation = 'destination-out';
         break;
-      case DrawingMode.FILL:
-        this.#mode = DrawingMode.FILL;
+      case MODE_FILL:
+        this.#mode = MODE_FILL;
         this.#context.globalCompositeOperation = 'source-over';
         break;
-      case DrawingMode.DISABLED:
-        this.#mode = DrawingMode.DISABLED;
+      case MODE_DISABLED:
+        this.#mode = MODE_DISABLED;
+        break;
+      case MODE_DRAW:
+        this.#mode = MODE_DRAW;
+        this.#context.globalCompositeOperation = 'source-over';
         break;
       default:
-        this.#mode = DrawingMode.DRAW;
-        this.#context.globalCompositeOperation = 'source-over';
-        break;
+        throw new Error('atrament: mode is not one of the allowed modes.');
     }
   }
 
@@ -424,8 +424,8 @@ class Atrament extends AtramentEventTarget {
     // get canvas element
     if (selector instanceof window.Node && selector.tagName === 'CANVAS') canvas = selector;
     else if (typeof selector === 'string') canvas = document.querySelector(selector);
-    else throw new Error(`can't look for canvas based on '${selector}'`);
-    if (!canvas) throw new Error('canvas not found');
+    else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
+    if (!canvas) throw new Error('atrament: canvas not found');
 
     canvas.width = config.width || canvas.width;
     canvas.height = config.height || canvas.height;
@@ -461,7 +461,7 @@ class Atrament extends AtramentEventTarget {
         );
 
         if (!this.#dirty
-          && this.#mode === DrawingMode.DRAW && (x !== this.#mouse.x || y !== this.#mouse.y)) {
+          && this.#mode === MODE_DRAW && (x !== this.#mouse.x || y !== this.#mouse.y)) {
           this.#dirty = true;
           this.dispatchEvent('dirty');
         }
@@ -479,7 +479,7 @@ class Atrament extends AtramentEventTarget {
     this.#pointerMove(event);
 
     // if we are filling - fill and return
-    if (this.mode === DrawingMode.FILL) {
+    if (this.mode === MODE_FILL) {
       this.#fill();
       return;
     }
@@ -491,7 +491,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerUp(event) {
-    if (this.#mode === DrawingMode.FILL) {
+    if (this.#mode === MODE_FILL) {
       return;
     }
 

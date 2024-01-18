@@ -1,9 +1,9 @@
-export const floodFillInterval = 100;
-export const maxLineThickness = 50;
-export const minLineThickness = 1;
-export const lineThicknessRange = maxLineThickness - minLineThickness;
-export const thicknessIncrement = 0.5;
-export const minSmoothingFactor = 0.87;
-export const initialSmoothingFactor = 0.85;
-export const weightSpread = 10;
-export const initialThickness = 2;
+const MAX_LINE_THICKNESS = 50;
+
+export const MIN_LINE_THICKNESS = 1;
+export const LINE_THICKNESS_RANGE = MAX_LINE_THICKNESS - MIN_LINE_THICKNESS;
+export const THICKNESS_INCREMENT = 0.5;
+export const MIN_SMOOTHING_FACTOR = 0.87;
+export const INITIAL_SMOOTHING_FACTOR = 0.85;
+export const WEIGHT_SPREAD = 10;
+export const INITIAL_THICKNESS = 2;

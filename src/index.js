@@ -301,7 +301,7 @@ export default class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
-        this.#pressure = position.pressure ?? 1;
+        this.#pressure = position.pressure || 1;
       } else {
         this.#mouse.set(x, y);
       }

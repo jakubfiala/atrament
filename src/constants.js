@@ -7,3 +7,4 @@ export const MIN_SMOOTHING_FACTOR = 0.87;
 export const INITIAL_SMOOTHING_FACTOR = 0.85;
 export const WEIGHT_SPREAD = 10;
 export const INITIAL_THICKNESS = 2;
+export const DEFAULT_PRESSURE = 0.5;

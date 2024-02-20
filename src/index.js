@@ -13,6 +13,7 @@ import {
   INITIAL_SMOOTHING_FACTOR,
   WEIGHT_SPREAD,
   INITIAL_THICKNESS,
+  DEFAULT_PRESSURE,
 } from './constants.js';
 
 export const MODE_DRAW = Symbol('atrament mode - draw');
@@ -38,7 +39,7 @@ export default class Atrament extends AtramentEventTarget {
   #maxWeight = INITIAL_THICKNESS + WEIGHT_SPREAD;
   #mode = MODE_DRAW;
   #mouse = new Mouse();
-  #pressure = 1;
+  #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #targetThickness = INITIAL_THICKNESS;
@@ -302,7 +303,7 @@ export default class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
-        this.#pressure = position.pressure || 1;
+        this.#pressure = position.pressure || DEFAULT_PRESSURE;
       } else {
         this.#mouse.set(x, y);
       }

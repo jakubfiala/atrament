@@ -172,6 +172,7 @@ const MIN_SMOOTHING_FACTOR = 0.87;
 const INITIAL_SMOOTHING_FACTOR = 0.85;
 const WEIGHT_SPREAD = 10;
 const INITIAL_THICKNESS = 2;
+const DEFAULT_PRESSURE = 0.5;
 
 // eslint-disable-next-line import/no-unresolved
 
@@ -198,7 +199,7 @@ class Atrament extends AtramentEventTarget {
   #maxWeight = INITIAL_THICKNESS + WEIGHT_SPREAD;
   #mode = MODE_DRAW;
   #mouse = new Mouse();
-  #pressure = 1;
+  #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #targetThickness = INITIAL_THICKNESS;
@@ -462,7 +463,7 @@ class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
-        this.#pressure = position.pressure || 1;
+        this.#pressure = position.pressure || DEFAULT_PRESSURE;
       } else {
         this.#mouse.set(x, y);
       }

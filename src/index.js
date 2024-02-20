@@ -259,8 +259,8 @@ export default class Atrament extends AtramentEventTarget {
     else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
     if (!canvas) throw new Error('atrament: canvas not found');
 
-    canvas.width = config.width || canvas.width;
-    canvas.height = config.height || canvas.height;
+    canvas.width = (config.width || canvas.width) * window.devicePixelRatio;
+    canvas.height = (config.height || canvas.height) * window.devicePixelRatio;
     canvas.style.touchAction = 'none';
 
     return canvas;
@@ -268,6 +268,7 @@ export default class Atrament extends AtramentEventTarget {
 
   static #setupContext(canvas, config) {
     const context = canvas.getContext('2d');
+    context.scale(window.devicePixelRatio, window.devicePixelRatio);
     context.globalCompositeOperation = 'source-over';
     context.globalAlpha = 1;
     context.strokeStyle = config.color || 'rgba(0,0,0,1)';

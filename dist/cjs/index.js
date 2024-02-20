@@ -198,6 +198,7 @@ class Atrament extends AtramentEventTarget {
   #maxWeight = INITIAL_THICKNESS + WEIGHT_SPREAD;
   #mode = MODE_DRAW;
   #mouse = new Mouse();
+  #pressure = 1;
   #removePointerEventListeners;
   #strokeMemory = [];
   #targetThickness = INITIAL_THICKNESS;
@@ -302,7 +303,7 @@ class Atrament extends AtramentEventTarget {
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
-      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
+      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / (LINE_THICKNESS_RANGE * this.#pressure);
       this.#targetThickness = thicknessRatio * (this.#maxWeight - this.#weight) + this.#weight;
       // approach the target gradually
       if (this.thickness > this.#targetThickness) {
@@ -459,6 +460,7 @@ class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
+        this.#pressure = position.pressure ?? 1;
       } else {
         this.#mouse.set(x, y);
       }

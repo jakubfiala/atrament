@@ -537,8 +537,8 @@ class Atrament extends AtramentEventTarget {
       width: this.canvas.width,
       height: this.canvas.height,
       startColor,
-      startX: x,
-      startY: y,
+      startX: x * window.devicePixelRatio,
+      startY: y * window.devicePixelRatio,
     };
 
     if (!this.#filling) {

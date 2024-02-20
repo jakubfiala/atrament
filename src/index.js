@@ -143,7 +143,8 @@ export default class Atrament extends AtramentEventTarget {
 
     if (this.adaptiveStroke) {
       // calculate target thickness based on the new distance
-      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / (LINE_THICKNESS_RANGE * this.#pressure);
+      const thicknessRange = LINE_THICKNESS_RANGE * (1 - this.#pressure);
+      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / thicknessRange;
       this.#targetThickness = thicknessRatio * (this.#maxWeight - this.#weight) + this.#weight;
       // approach the target gradually
       if (this.thickness > this.#targetThickness) {

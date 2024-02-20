@@ -202,6 +202,7 @@ class Atrament extends AtramentEventTarget {
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
+  #thickness = INITIAL_THICKNESS;
   #targetThickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
 
@@ -308,13 +309,13 @@ class Atrament extends AtramentEventTarget {
       const thicknessRatio = (dist - MIN_LINE_THICKNESS) / thicknessRange;
       this.#targetThickness = thicknessRatio * (this.#maxWeight - this.#weight) + this.#weight;
       // approach the target gradually
-      if (this.thickness > this.#targetThickness) {
-        this.thickness -= THICKNESS_INCREMENT;
-      } else if (this.thickness < this.#targetThickness) {
-        this.thickness += THICKNESS_INCREMENT;
+      if (this.#thickness > this.#targetThickness) {
+        this.#thickness -= THICKNESS_INCREMENT;
+      } else if (this.#thickness < this.#targetThickness) {
+        this.#thickness += THICKNESS_INCREMENT;
       }
       // set line width
-      this.#context.lineWidth = this.thickness;
+      this.#context.lineWidth = this.#thickness;
     } else {
       // line width is equal to default weight
       this.#context.lineWidth = this.#weight;
@@ -365,7 +366,7 @@ class Atrament extends AtramentEventTarget {
 
   set weight(w) {
     if (typeof w !== 'number') throw new Error('atrament: wrong argument type setting weight');
-    this.thickness = w;
+    this.#thickness = w;
 
     this.#maxWeight = w + WEIGHT_SPREAD;
     this.#targetThickness = w;

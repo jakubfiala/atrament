@@ -112,19 +112,9 @@ export default class Atrament extends AtramentEventTarget {
    * @param {number} prevY previous Y coordinate
    */
   draw(x, y, prevX, prevY) {
-    // calculate distance from previous point
-    const rawDist = lineDistance(x, y, prevX, prevY);
-
-    // now, here we scale the initial smoothing factor by the raw distance
-    // this means that when the mouse moves fast, there is more smoothing
-    // and when we're drawing small detailed stuff, we have more control
-    // also we hard clip at 1
-    const smoothingFactor = Math.min(
-      MIN_SMOOTHING_FACTOR,
-      this.smoothing + (rawDist - 60) / 3000,
-    );
-
-    // calculate processed coordinates
+    // get distance from the previous point
+    // and use it to calculate the smoothed coordinates
+    const smoothingFactor = this.getSmoothingFactor(lineDistance(x, y, prevX, prevY));
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
 
@@ -214,8 +204,22 @@ export default class Atrament extends AtramentEventTarget {
     this.#weight = w;
   }
 
+  // For small weights, this allows for a lot of spread,
+  // while for larger weights, the effect is less prominent.
+  // This means at small weights, Atrament behaves more like an ink pen,
+  // and at larger weights more like a marker.
   get #maxWeight() {
     return this.#weight + WEIGHT_SPREAD;
+  }
+
+  // Here we scale the initial smoothing factor by the raw distance
+  // - this means that when the mouse moves fast, there is more smoothing,
+  // and when we're drawing small detailed stuff, we have more control.
+  getSmoothingFactor(dist) {
+    return Math.min(
+      MIN_SMOOTHING_FACTOR,
+      this.smoothing + (dist - 60) / 3000,
+    );
   }
 
   get mode() {

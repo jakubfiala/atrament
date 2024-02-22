@@ -31,6 +31,7 @@ Enjoy!
   - [Usage](#usage)
   - [Options \& config](#options--config)
   - [Data model](#data-model)
+  - [High DPI screens](#high-dpi-screens)
   - [Events](#events)
     - [Dirty/clean](#dirtyclean)
     - [Stroke start/end](#stroke-startend)
@@ -63,7 +64,7 @@ const canvas = document.querySelector('#sketchpad');
 const sketchpad = new Atrament(canvas);
 ```
 
-- you can also pass the width, height and default colour to the constructor:
+- you can also pass the width, height and default colour to the constructor (see [note on high DPI screens](#high-dpi-screens))
 
 ```js
 const sketchpad = new Atrament(canvas, {
@@ -106,13 +107,13 @@ sketchpad.mode = MODE_FILL; // click to fill area
 sketchpad.mode = MODE_DISABLED; // no modification to the canvas (will still fire stroke events)
 ```
 
-- tweak smoothing - higher values make the drawings look much better, lower values make drawing feel a bit more responsive. Set to `0.85` by default.
+- tweak smoothing - higher values make the drawings look smoother, lower values make drawing feel a bit more responsive. Set to `0.85` by default.
 
 ```js
 sketchpad.smoothing = 1.3;
 ```
 
-- toggle adaptive stroke, i.e. line width changing based on drawing speed for a more natural effect. `true` by default.
+- toggle adaptive stroke, i.e. line width changing based on drawing speed and stroke progress. This simulates the variation in ink discharge of a physical pen. `true` by default.
 
 ```js
 sketchpad.adaptiveStroke = false;
@@ -130,6 +131,13 @@ sketchpad.recordStrokes = true;
 - Each stroke consists of a list of _segments_, which correspond to all the pointer positions recorded during drawing.
 - Each segment consists of a _point_ which contains `x` and `y` coordinates, and a `time` which is the number of milliseconds since the stroke began, until the segment was drawn.
 - Each stroke also contains information about the drawing settings at the time of drawing (see Events > Stroke recording).
+
+
+## High DPI screens
+
+To make drawings look sharp on high DPI screens, Atrament scales its drawing context by `window.devicePixelRatio` since v4.0.0. This means when you set a custom `width` or `height`, you should
+also multiply the CSS pixel values by `devicePixelRatio`. The values accepted by `draw()`
+and included in stroke events are always in CSS pixels.
 
 ## Events
 

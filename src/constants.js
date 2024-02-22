@@ -1,10 +1,10 @@
-const MAX_LINE_THICKNESS = 50;
+const MAX_LINE_THICKNESS = 100;
 
-export const MIN_LINE_THICKNESS = 1;
+export const MIN_LINE_THICKNESS = 2;
 export const LINE_THICKNESS_RANGE = MAX_LINE_THICKNESS - MIN_LINE_THICKNESS;
-export const THICKNESS_INCREMENT = 0.5;
+export const THICKNESS_INCREMENT = 0.25;
 export const MIN_SMOOTHING_FACTOR = 0.87;
 export const INITIAL_SMOOTHING_FACTOR = 0.85;
-export const WEIGHT_SPREAD = 10;
+export const WEIGHT_SPREAD = 30;
 export const INITIAL_THICKNESS = 2;
 export const DEFAULT_PRESSURE = 0.5;

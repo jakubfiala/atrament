@@ -163,14 +163,14 @@ const setupPointerEvents = ({
   };
 };
 
-const MAX_LINE_THICKNESS = 50;
+const MAX_LINE_THICKNESS = 100;
 
-const MIN_LINE_THICKNESS = 1;
+const MIN_LINE_THICKNESS = 2;
 const LINE_THICKNESS_RANGE = MAX_LINE_THICKNESS - MIN_LINE_THICKNESS;
-const THICKNESS_INCREMENT = 0.5;
+const THICKNESS_INCREMENT = 0.25;
 const MIN_SMOOTHING_FACTOR = 0.87;
 const INITIAL_SMOOTHING_FACTOR = 0.85;
-const WEIGHT_SPREAD = 10;
+const WEIGHT_SPREAD = 30;
 const INITIAL_THICKNESS = 2;
 const DEFAULT_PRESSURE = 0.5;
 
@@ -196,14 +196,12 @@ class Atrament extends AtramentEventTarget {
   #filling = false;
   #fillStack = [];
   #fillWorker = new WorkerFactory();
-  #maxWeight = INITIAL_THICKNESS + WEIGHT_SPREAD;
   #mode = MODE_DRAW;
   #mouse = new Mouse();
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
-  #targetThickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
 
   constructor(selector, config = {}) {
@@ -238,8 +236,8 @@ class Atrament extends AtramentEventTarget {
    * @param {number} y
    */
   beginStroke(x, y) {
-    this.#context.beginPath();
     this.#context.moveTo(x, y);
+    this.#thickness = this.#weight;
 
     if (this.recordStrokes) {
       this.strokeTimestamp = performance.now();
@@ -255,7 +253,6 @@ class Atrament extends AtramentEventTarget {
    * @param {number} y
    */
   endStroke(x, y) {
-    this.#context.closePath();
     this.dispatchEvent('strokeend', { x, y });
 
     if (this.recordStrokes) {
@@ -275,15 +272,6 @@ class Atrament extends AtramentEventTarget {
    * @param {number} prevY previous Y coordinate
    */
   draw(x, y, prevX, prevY) {
-    if (this.recordStrokes) {
-      this.#strokeMemory.push({
-        point: new Point(x, y),
-        time: performance.now() - this.strokeTimestamp,
-      });
-
-      this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
-    }
-
     // calculate distance from previous point
     const rawDist = lineDistance(x, y, prevX, prevY);
 
@@ -303,27 +291,43 @@ class Atrament extends AtramentEventTarget {
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
 
+    // Adaptive stroke allows an effect where thickness changes
+    // over the course of the stroke. This simulates the variation in
+    // ink discharge of a physical pen.
     if (this.adaptiveStroke) {
-      // calculate target thickness based on the new distance
-      const thicknessRange = LINE_THICKNESS_RANGE * (1 - this.#pressure);
-      const thicknessRatio = (dist - MIN_LINE_THICKNESS) / thicknessRange;
-      this.#targetThickness = thicknessRatio * (this.#maxWeight - this.#weight) + this.#weight;
+      // Thickness range is inversely proportional to pressure,
+      // because with higher pressure, the effect of distance
+      // on the thickness ratio should be greater.
+      const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
+      const ratio = (dist - MIN_LINE_THICKNESS) / range;
+      const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
       // approach the target gradually
-      if (this.#thickness > this.#targetThickness) {
+      if (this.#thickness > targetThickness) {
         this.#thickness -= THICKNESS_INCREMENT;
-      } else if (this.#thickness < this.#targetThickness) {
+      } else if (this.#thickness < targetThickness) {
         this.#thickness += THICKNESS_INCREMENT;
       }
-      // set line width
-      this.#context.lineWidth = this.#thickness;
     } else {
-      // line width is equal to default weight
-      this.#context.lineWidth = this.#weight;
+      this.#thickness = this.#weight;
     }
 
-    // draw using quad interpolation
+    this.#context.lineWidth = this.#thickness;
+
+    // Draw the segment using quad interpolation.
+    this.#context.beginPath();
+    this.#context.moveTo(prevX, prevY);
     this.#context.quadraticCurveTo(prevX, prevY, procX, procY);
+    this.#context.closePath();
     this.#context.stroke();
+
+    if (this.recordStrokes) {
+      this.#strokeMemory.push({
+        point: new Point(x, y),
+        time: performance.now() - this.strokeTimestamp,
+      });
+
+      this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
+    }
 
     return { x: procX, y: procY };
   }
@@ -367,10 +371,11 @@ class Atrament extends AtramentEventTarget {
   set weight(w) {
     if (typeof w !== 'number') throw new Error('atrament: wrong argument type setting weight');
     this.#thickness = w;
-
-    this.#maxWeight = w + WEIGHT_SPREAD;
-    this.#targetThickness = w;
     this.#weight = w;
+  }
+
+  get #maxWeight() {
+    return this.#weight + WEIGHT_SPREAD;
   }
 
   get mode() {

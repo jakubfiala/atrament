@@ -1,6 +1,6 @@
 # v4.0.0
 
-## Breaking changes
+## Breaking API changes
 
 - Atrament now only supports evergreen browsers ((Firefox, Chrome and Chromium-based browsers)
   and Safari 15 or above. If your application must support older browsers, please use version 3.
@@ -11,6 +11,12 @@
 - the `toImage()` method has been removed - please use `canvas.toDataURL()` to achieve the same effect
 - the `isDirty()` method has been replaced by the `dirty` getter, making it more consistent with the rest of the API
 - the `Atrament` class now uses private fields and methods. A number of undocumented fields+methods are now not accessible from the outside.
+
+## Drawing experience changes
+
+- if `adaptiveStroke` is enabled (default), Atrament now responds to the pointer's pressure by changing the stroke thickness. This is useful when using pressure-sensitive input methods such as the Apple Pencil.
+- stroke segments are now drawn as individual paths. This means strokes tend to start thin, then thicken and get thinner again towards the end, which is closer to the behaviour of an ink pen.
+- strokes are always at least as thick as the `weight` setting in pixels, leading to a more consistent drawing feel especially when drawing finer details.
 
 ## Other changes
 

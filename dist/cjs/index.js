@@ -461,8 +461,8 @@ class Atrament extends AtramentEventTarget {
         const { x: newX, y: newY } = this.draw(
           x,
           y,
-          this.#mouse.previous.x,
-          this.#mouse.previous.y,
+          this.#mouse.previous.x || x,
+          this.#mouse.previous.y || y,
         );
 
         if (!this.#dirty
@@ -473,7 +473,11 @@ class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
-        this.#pressure = position.pressure || DEFAULT_PRESSURE;
+        // Android Chrome sets pressure to constant 1 by default, which would break the algorithm
+        // We also handle the case when pressure is 0.
+        this.#pressure = position.pressure === 1
+          ? DEFAULT_PRESSURE
+          : position.pressure || DEFAULT_PRESSURE;
       } else {
         this.#mouse.set(x, y);
       }
@@ -481,17 +485,15 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    // update position just in case
-    this.#pointerMove(event);
-
     // if we are filling - fill and return
     if (this.mode === MODE_FILL) {
       this.#fill();
       return;
     }
-    // remember it
-    this.#mouse.previous.set(this.#mouse.x, this.#mouse.y);
+
     this.#mouse.down = true;
+    // update position just in case
+    this.#pointerMove(event);
 
     this.beginStroke(this.#mouse.previous.x, this.#mouse.previous.y);
   }
@@ -509,13 +511,13 @@ class Atrament extends AtramentEventTarget {
 
     if (this.#mouse.x === event.offsetX
       && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {
-      const { x: nx, y: ny } = this.draw(
+      this.draw(
         this.#mouse.x,
         this.#mouse.y,
         this.#mouse.previous.x,
         this.#mouse.previous.y,
       );
-      this.#mouse.previous.set(nx, ny);
+      this.#mouse.previous.set(0, 0);
     }
 
     this.endStroke(this.#mouse.x, this.#mouse.y);

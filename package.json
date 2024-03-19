@@ -1,6 +1,6 @@
 {
   "name": "atrament",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Tiny JS library for beautiful drawing and handwriting on the HTML Canvas",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",

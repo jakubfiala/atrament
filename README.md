@@ -22,7 +22,7 @@ and Safari 15 or above. If your application must support older browsers, please 
 - Events tracking the drawing - this allows the app to "replay" or reconstruct the drawing, e.g. for undo functionality
 - Adjustable line thickness and colour
 
-[Here's a basic demo.](http://fiala.uk/atrament.js/demo/)
+[Here's a basic demo.](https://fiala.space/atrament/demo/)
 
 Enjoy!
 

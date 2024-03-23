@@ -144,11 +144,11 @@ and included in stroke events are always in CSS pixels.
 ### Dirty/clean
 
 These events fire when the canvas is first drawn on, and when it's cleared.
-The state is stored in the `isDirty` property.
+The state is stored in the `dirty` property.
 
 ```js
-sketchpad.addEventListener('dirty', () => console.info(sketchpad.isDirty));
-sketchpad.addEventListener('clean', () => console.info(sketchpad.isDirty));
+sketchpad.addEventListener('dirty', () => console.info(sketchpad.dirty));
+sketchpad.addEventListener('clean', () => console.info(sketchpad.dirty));
 ```
 
 ### Stroke start/end

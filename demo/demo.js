@@ -65,6 +65,7 @@ modeInput.addEventListener('change', ({ target: { value } }) => {
 
 colorPicker.on('save', (color) => {
   atrament.color = color.toRGBA().toString();
+  colorPicker.hide();
 });
 
 atrament.addEventListener('dirty', () => {

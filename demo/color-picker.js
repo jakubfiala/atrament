@@ -32,7 +32,6 @@ export default Pickr.create({
       hsva: true,
       cmyk: true,
       input: true,
-      clear: true,
       save: true,
     },
   },

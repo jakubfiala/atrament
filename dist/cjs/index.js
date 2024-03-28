@@ -319,24 +319,36 @@ class Atrament extends AtramentEventTarget {
       this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
     }
 
+    // At this point, we can be certain the canvas has some drawing on it,
+    // so we can toggle the "dirty" state. Checking it here ensures that
+    // the state is also updated during programmatic drawing.
+    if (!this.#dirty && this.#mode === MODE_DRAW) {
+      this.#dirty = true;
+      this.dispatchEvent('dirty');
+    }
+
     return { x: procX, y: procY };
   }
 
   clear() {
-    if (!this.#dirty) {
-      return;
-    }
-
     this.#dirty = false;
     this.dispatchEvent('clean');
 
     // make sure we're in the right compositing mode, and erase everything
-    if (this.mode === MODE_ERASE) {
+    const eraseMode = this.mode === MODE_ERASE;
+    if (eraseMode) {
       this.mode = MODE_DRAW;
-      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
+    }
+
+    // clear the canvas without the transform
+    // code taken from https://stackoverflow.com/a/6722031
+    this.#context.save();
+    this.#context.setTransform(1, 0, 0, 1, 0, 0);
+    this.#context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.#context.restore();
+
+    if (eraseMode) {
       this.mode = MODE_ERASE;
-    } else {
-      this.#context.clearRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
     }
   }
 
@@ -464,12 +476,6 @@ class Atrament extends AtramentEventTarget {
           this.#mouse.previous.x || x,
           this.#mouse.previous.y || y,
         );
-
-        if (!this.#dirty
-          && this.#mode === MODE_DRAW && (x !== this.#mouse.x || y !== this.#mouse.y)) {
-          this.#dirty = true;
-          this.dispatchEvent('dirty');
-        }
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);

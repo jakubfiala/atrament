@@ -38,6 +38,7 @@ Enjoy!
     - [Fill start/end](#fill-startend)
     - [Stroke recording](#stroke-recording)
   - [Programmatic drawing](#programmatic-drawing)
+    - [Implementing Undo/Redo](#implementing-undoredo)
   - [Development](#development)
 
 ## Installation
@@ -250,6 +251,11 @@ while (segments.length > 0) {
 // endStroke closes the path
 atrament.endStroke(prevPoint.x, prevPoint.y);
 ```
+
+### Implementing Undo/Redo
+
+Atrament does not provide its own undo/redo functionality to keep the scope as small as possible. However, using stroke recording and programmatic drawing,
+it is possible to implement undo/redo with a relatively small amount of code. See @nidoro and @feored's example [here](https://github.com/jakubfiala/atrament/issues/71#issuecomment-1214261577).
 
 ## Development
 

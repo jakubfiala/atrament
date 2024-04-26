@@ -310,7 +310,6 @@ export default class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
-        console.log(x, y, this.#mouse.previous);
         const { x: newX, y: newY } = this.draw(
           x,
           y,

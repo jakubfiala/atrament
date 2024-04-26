@@ -155,11 +155,13 @@ const setupPointerEvents = ({
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);
   document.addEventListener('pointerup', upListener);
+  document.addEventListener('pointerout', upListener);
 
   return () => {
     canvas.removeEventListener('pointermove', moveListener);
     canvas.removeEventListener('pointerdown', downListener);
     document.removeEventListener('pointerup', upListener);
+    document.removeEventListener('pointerout', upListener);
   };
 };
 
@@ -470,6 +472,7 @@ class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
+        console.log(x, y, this.#mouse.previous);
         const { x: newX, y: newY } = this.draw(
           x,
           y,
@@ -523,8 +526,9 @@ class Atrament extends AtramentEventTarget {
         this.#mouse.previous.x,
         this.#mouse.previous.y,
       );
-      this.#mouse.previous.set(0, 0);
     }
+
+    this.#mouse.previous.set(0, 0);
 
     this.endStroke(this.#mouse.x, this.#mouse.y);
   }

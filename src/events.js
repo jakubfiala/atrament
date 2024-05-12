@@ -17,6 +17,7 @@ export default class AtramentEventTarget {
 
   dispatchEvent(eventName, data) {
     const handlers = this.eventListeners.get(eventName);
+    console.log('dispatching...', eventName, data);
     if (!handlers) return;
     [...handlers].forEach((handler) => handler(data));
   }

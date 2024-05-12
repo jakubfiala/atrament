@@ -263,3 +263,15 @@ To obtain the dependencies, `cd` into the atrament directory and run `npm instal
 You should be able to then build atrament by simply running `npm run build`.
 
 I didn't bother writing tests because it's such a small package. Contributions are welcome!
+
+### Run a local server
+
+First build the project:
+```sh
+npm run build
+```
+
+Then start a local server:
+```sh
+npm start
+```

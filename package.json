@@ -5,6 +5,7 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "scripts": {
+    "start": "esbuild --bundle ./demo/demo.js --outfile=demo/main.js --servedir=demo",
     "build": "rollup --config",
     "watch": "rollup --config --watch",
     "lint": "./node_modules/eslint/bin/eslint.js ./src"
@@ -38,5 +39,8 @@
     "eslint-plugin-import": "^2.26.0",
     "rollup": "^4.9.4",
     "rollup-plugin-web-worker-loader": "^1.6.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.1"
   }
 }

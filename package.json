@@ -42,5 +42,10 @@
   },
   "devDependencies": {
     "esbuild": "^0.21.1"
+  },
+  "overrides": {
+    "rollup-plugin-web-worker-loader": {
+      "rollup": "$rollup"
+    }
   }
 }

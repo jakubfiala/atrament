@@ -40,6 +40,7 @@ Enjoy!
   - [Programmatic drawing](#programmatic-drawing)
     - [Implementing Undo/Redo](#implementing-undoredo)
   - [Development](#development)
+    - [Running the demo locally](#running-the-demo-locally)
 
 ## Installation
 
@@ -260,18 +261,9 @@ it is possible to implement undo/redo with a relatively small amount of code. Se
 ## Development
 
 To obtain the dependencies, `cd` into the atrament directory and run `npm install`.
-You should be able to then build atrament by simply running `npm run build`.
+You should be able to then build atrament by simply running `npm run build` and rebuild continuously with `npm run watch`.
 
-I didn't bother writing tests because it's such a small package. Contributions are welcome!
+### Running the demo locally
 
-### Run a local server
-
-First build the project:
-```sh
-npm run build
-```
-
-Then start a local server:
-```sh
-npm start
-```
+The demo app is useful for development, and it's set up to use the compiled files in `/dist`. It's a plain HTML website which can be served with any local server.
+A good way to develop using the demo is to run `python -m http.server` (with Python 3) in the `/demo` directory. The demo will be served on `localhost:8000`.

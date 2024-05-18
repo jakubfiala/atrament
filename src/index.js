@@ -118,6 +118,9 @@ export default class Atrament extends AtramentEventTarget {
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
 
+    // fix line from top left corner
+    if (prevX === 0 && prevY === 0) return { x: procX, y: procY };
+
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
 

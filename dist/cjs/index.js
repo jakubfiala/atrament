@@ -259,18 +259,20 @@ class Atrament extends AtramentEventTarget {
    *
    * @param {number} x current X coordinate
    * @param {number} y current Y coordinate
-   * @param {number} prevX previous X coordinate
-   * @param {number} prevY previous Y coordinate
+   * @param {number} previousX previous X coordinate
+   * @param {number} previousY previous Y coordinate
    */
-  draw(x, y, prevX, prevY) {
+  draw(x, y, previousX, previousY) {
+    // If the user clicks (or double clicks) without moving the mouse,
+    // previousX/Y will be 0. In this case, we don't want to draw a line from (0,0) to (x,y),
+    // but a "point" from (x,y) to (x,y).
+    const prevX = previousX || x;
+    const prevY = previousY || y;
     // get distance from the previous point
     // and use it to calculate the smoothed coordinates
     const smoothingFactor = this.getSmoothingFactor(lineDistance(x, y, prevX, prevY));
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
-
-    // fix line from top left corner
-    if (prevX === 0 && prevY === 0) return { x: procX, y: procY };
 
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
@@ -467,8 +469,8 @@ class Atrament extends AtramentEventTarget {
         const { x: newX, y: newY } = this.draw(
           x,
           y,
-          this.#mouse.previous.x || x,
-          this.#mouse.previous.y || y,
+          this.#mouse.previous.x,
+          this.#mouse.previous.y,
         );
 
         this.#mouse.set(x, y);

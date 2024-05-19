@@ -269,8 +269,10 @@ class Atrament extends AtramentEventTarget {
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
 
-    // recalculate distance from previous point, this time relative to the
-    //   smoothed coords
+    // fix line from top left corner
+    if (prevX === 0 && prevY === 0) return { x: procX, y: procY };
+
+    // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
 
     // Adaptive stroke allows an effect where thickness changes
@@ -472,7 +474,7 @@ class Atrament extends AtramentEventTarget {
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
         // Android Chrome sets pressure to constant 1 by default,
-        //   which would break the algorithm
+        // which would break the algorithm.
         // We also handle the case when pressure is 0.
         this.#pressure = position.pressure === 1
           ? DEFAULT_PRESSURE

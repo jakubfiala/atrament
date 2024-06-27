@@ -17,6 +17,8 @@ export default {
     },
   ],
   plugins: [
-    webWorkerLoader(),
+    webWorkerLoader({
+      targetPlatform: 'browser',
+    }),
   ],
 };

@@ -424,9 +424,11 @@ class Atrament extends AtramentEventTarget {
 
   #pointerMove(event) {
     const positions = event.getCoalescedEvents?.() || [event];
+    const rect = this.canvas.getBoundingClientRect();
+
     positions.forEach((position) => {
-      const x = position.offsetX;
-      const y = position.offsetY;
+      const x = position.offsetX - rect.left;
+      const y = position.offsetY - rect.top;
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {

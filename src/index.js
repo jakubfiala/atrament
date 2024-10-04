@@ -312,8 +312,8 @@ export default class Atrament extends AtramentEventTarget {
     const rect = this.canvas.getBoundingClientRect();
 
     positions.forEach((position) => {
-      const x = position.offsetX - rect.top;
-      const y = position.offsetY - rect.left;
+      const x = position.offsetX - rect.left;
+      const y = position.offsetY - rect.top;
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {

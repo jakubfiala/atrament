@@ -138,9 +138,9 @@ sketchpad.recordStrokes = true;
 
 ## High DPI screens
 
-To make drawings look sharp on high DPI screens, Atrament scales its drawing context by `window.devicePixelRatio` since v4.0.0. This means when you set a custom `width` or `height`, you should
-also multiply the CSS pixel values by `devicePixelRatio`. The values accepted by `draw()`
-and included in stroke events are always in CSS pixels.
+To make drawings look sharp on high DPI screens, Atrament scales its drawing context by `window.devicePixelRatio` since v4.0.0. This means when you set a custom `width` or `height`, you should also multiply the CSS pixel values by `devicePixelRatio`. The values accepted by `draw()` and included in stroke events are always in CSS pixels.
+
+As of Atrament v4.5.0, the `resolution` config option allows overriding the DPR scaling - this is useful if, for instance, you'd like to export the image at a higher resolution than displayed.
 
 ## Events
 

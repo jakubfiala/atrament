@@ -143,6 +143,7 @@ class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
   canvas;
   recordStrokes = false;
+  resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
 
@@ -402,9 +403,11 @@ class Atrament extends AtramentEventTarget {
     else if (typeof selector === 'string') canvas = document.querySelector(selector);
     else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
     if (!canvas) throw new Error('atrament: canvas not found');
-
-    canvas.width = (config.width || canvas.width) * window.devicePixelRatio;
-    canvas.height = (config.height || canvas.height) * window.devicePixelRatio;
+    // since this method is static, we have to add a fallback to the resolution here
+    // TODO: see if these methods really have to be static.
+    const scale = config.resolution || window.devicePixelRatio;
+    canvas.width = (config.width || canvas.width) * scale;
+    canvas.height = (config.height || canvas.height) * scale;
     canvas.style.touchAction = 'none';
 
     return canvas;
@@ -412,7 +415,10 @@ class Atrament extends AtramentEventTarget {
 
   static #setupContext(canvas, config) {
     const context = canvas.getContext('2d');
-    context.scale(window.devicePixelRatio, window.devicePixelRatio);
+    // since this method is static, we have to add a fallback to the resolution here
+    // TODO: see if these methods really have to be static.
+    const scale = config.resolution || window.devicePixelRatio;
+    context.scale(scale, scale);
     context.globalCompositeOperation = 'source-over';
     context.globalAlpha = 1;
     context.strokeStyle = config.color || 'rgba(0,0,0,1)';
@@ -519,8 +525,8 @@ class Atrament extends AtramentEventTarget {
       width: this.canvas.width,
       height: this.canvas.height,
       startColor,
-      startX: x * window.devicePixelRatio,
-      startY: y * window.devicePixelRatio,
+      startX: x * this.resolution,
+      startY: y * this.resolution,
     };
 
     if (!this.#filling) {

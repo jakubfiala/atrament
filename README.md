@@ -66,12 +66,13 @@ const canvas = document.querySelector('#sketchpad');
 const sketchpad = new Atrament(canvas);
 ```
 
-- you can also pass the width, height and default colour to the constructor (see [note on high DPI screens](#high-dpi-screens))
+- you can also pass the width, height, resolution and default colour to the constructor (see [note on high DPI screens](#high-dpi-screens))
 
 ```js
 const sketchpad = new Atrament(canvas, {
   width: 500,
   height: 500,
+  resolution: 2, // the intrinsic canvas size will be 2*500 x 2*500
   color: 'orange',
 });
 ```

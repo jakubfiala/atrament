@@ -14,6 +14,7 @@ import {
   WEIGHT_SPREAD,
   INITIAL_THICKNESS,
   DEFAULT_PRESSURE,
+  ERASE_THICKNESS_RATIO,
 } from './constants.js';
 
 export const MODE_DRAW = Symbol('atrament mode - draw');
@@ -146,7 +147,7 @@ export default class Atrament extends AtramentEventTarget {
       // In Erase mode, we don't want the actual adaptive behaviour,
       // rather, we use a "mid-point" thickness derived from the weight setting.
       const ratio = this.#mode === MODE_ERASE
-        ? 0.5
+        ? ERASE_THICKNESS_RATIO
         : (dist - MIN_LINE_THICKNESS) / range;
       // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;

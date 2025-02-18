@@ -129,6 +129,7 @@ const INITIAL_SMOOTHING_FACTOR = 0.85;
 const WEIGHT_SPREAD = 30;
 const INITIAL_THICKNESS = 2;
 const DEFAULT_PRESSURE = 0.5;
+const ERASE_THICKNESS_RATIO = 0.5;
 
 // eslint-disable-next-line import/no-unresolved
 
@@ -262,7 +263,7 @@ class Atrament extends AtramentEventTarget {
       // In Erase mode, we don't want the actual adaptive behaviour,
       // rather, we use a "mid-point" thickness derived from the weight setting.
       const ratio = this.#mode === MODE_ERASE
-        ? 0.5
+        ? ERASE_THICKNESS_RATIO
         : (dist - MIN_LINE_THICKNESS) / range;
       // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;

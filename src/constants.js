@@ -8,4 +8,3 @@ export const INITIAL_SMOOTHING_FACTOR = 0.85;
 export const WEIGHT_SPREAD = 30;
 export const INITIAL_THICKNESS = 2;
 export const DEFAULT_PRESSURE = 0.5;
-export const ERASE_THICKNESS_RATIO = 0.5;

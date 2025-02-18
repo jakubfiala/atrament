@@ -14,7 +14,6 @@ import {
   WEIGHT_SPREAD,
   INITIAL_THICKNESS,
   DEFAULT_PRESSURE,
-  ERASE_THICKNESS_RATIO,
 } from './constants.js';
 
 export const MODE_DRAW = Symbol('atrament mode - draw');

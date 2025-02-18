@@ -162,7 +162,8 @@ sketchpad.addEventListener('clean', () => console.info(sketchpad.dirty));
 
 ### Stroke start/end
 
-These events don't provide any data - they just inform that a stroke has started/finished.
+These events inform that a stroke has started/finished. They also return `x` and `y` properties
+denoting where on the canvas the event occurred.
 
 ```js
 sketchpad.addEventListener('strokestart', () => console.info('strokestart'));
@@ -179,6 +180,17 @@ sketchpad.addEventListener('fillstart', ({ x, y }) =>
   console.info(`fillstart ${x} ${y}`),
 );
 sketchpad.addEventListener('fillend', () => console.info('fillend'));
+```
+
+### Pointer down/up
+
+Sometimes you might want to tweak Atrament's settings as soon as the user begins/ends a stroke,
+but before Atrament actually draws anything. The `pointerdown/up` events allow you to do this.
+The argument is the `PointerEvent` itself.
+
+```js
+sketchpad.addEventListener('pointerdown', (event) => console.info('pointerdown', event));
+sketchpad.addEventListener('pointerup', (event) => console.info('pointerup', event));
 ```
 
 ### Stroke recording

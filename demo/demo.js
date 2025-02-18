@@ -16,6 +16,7 @@ const playButton = document.getElementById('playButton');
 const weightInput = document.getElementById('weight');
 const smoothingInput = document.getElementById('smoothing');
 const adaptiveInput = document.getElementById('adaptive');
+const secondaryEraserInput = document.getElementById('secondary-eraser');
 const modeInput = document.getElementById('mode');
 
 const modes = {
@@ -57,6 +58,10 @@ smoothingInput.addEventListener('change', ({ target: { value } }) => {
 
 adaptiveInput.addEventListener('change', ({ target: { checked } }) => {
   atrament.adaptiveStroke = checked;
+});
+
+secondaryEraserInput.addEventListener('change', ({ target: { checked } }) => {
+  atrament.secondaryEraser = checked;
 });
 
 modeInput.addEventListener('change', ({ target: { value } }) => {

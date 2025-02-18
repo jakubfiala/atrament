@@ -144,23 +144,15 @@ export default class Atrament extends AtramentEventTarget {
       // because with higher pressure, the effect of distance
       // on the thickness ratio should be greater.
       const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
-      // In Erase mode, we don't want the actual adaptive behaviour,
-      // rather, we use a "mid-point" thickness derived from the weight setting.
-      const ratio = this.#mode === MODE_ERASE
-        ? ERASE_THICKNESS_RATIO
-        : (dist - MIN_LINE_THICKNESS) / range;
+      const ratio = (dist - MIN_LINE_THICKNESS) / range;
       // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
 
-      if (this.#mode === MODE_ERASE) {
-        this.#thickness = targetThickness;
-      } else {
-        // approach the target gradually
-        if (this.#thickness > targetThickness) {
-          this.#thickness -= THICKNESS_INCREMENT;
-        } else if (this.#thickness < targetThickness) {
-          this.#thickness += THICKNESS_INCREMENT;
-        }
+      // approach the target gradually
+      if (this.#thickness > targetThickness) {
+        this.#thickness -= THICKNESS_INCREMENT;
+      } else if (this.#thickness < targetThickness) {
+        this.#thickness += THICKNESS_INCREMENT;
       }
     } else {
       this.#thickness = this.#weight;

@@ -22,7 +22,7 @@ export const MODE_FILL = Symbol('atrament mode - fill');
 export const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryEraser'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton'];
 
 export default class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -31,7 +31,7 @@ export default class Atrament extends AtramentEventTarget {
   resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
-  secondaryEraser = false;
+  secondaryMouseButton = false;
 
   #context;
   #dirty = false;
@@ -42,7 +42,6 @@ export default class Atrament extends AtramentEventTarget {
   #mouse = new Mouse();
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
-  #secondaryEraserFromMode = MODE_DRAW;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
@@ -63,7 +62,7 @@ export default class Atrament extends AtramentEventTarget {
       move: this.#pointerMove.bind(this),
       down: this.#pointerDown.bind(this),
       up: this.#pointerUp.bind(this),
-    });
+    }, config);
 
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
@@ -72,7 +71,7 @@ export default class Atrament extends AtramentEventTarget {
     });
 
     this.canvas.addEventListener('contextmenu', (event) => {
-      if (this.secondaryEraser) {
+      if (this.secondaryMouseButton) {
         event.preventDefault();
       }
     });
@@ -354,17 +353,7 @@ export default class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    if (event.button === 2) {
-      if (this.secondaryEraser) {
-        this.#secondaryEraserFromMode = this.#mode;
-        this.mode = MODE_ERASE;
-      } else {
-        return;
-      }
-    } else if (this.mode === MODE_FILL) {
-      this.#fill();
-      return;
-    }
+    this.dispatchEvent('pointerdown', event);
 
     this.#mouse.down = true;
     // update position just in case
@@ -374,6 +363,8 @@ export default class Atrament extends AtramentEventTarget {
   }
 
   #pointerUp(event) {
+    this.dispatchEvent('pointerup', event);
+
     if (this.#mode === MODE_FILL) {
       return;
     }
@@ -383,14 +374,6 @@ export default class Atrament extends AtramentEventTarget {
     }
 
     this.#mouse.down = false;
-
-    if (event.button === 2) {
-      if (this.secondaryEraser) {
-        this.mode = this.#secondaryEraserFromMode ?? MODE_DRAW;
-      }
-
-      return;
-    }
 
     if (this.#mouse.x === event.offsetX
       && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {

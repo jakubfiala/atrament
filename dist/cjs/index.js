@@ -83,9 +83,9 @@ const lineDistance = (x1, y1, x2, y2) => {
 };
 /* eslint-enable no-param-reassign */
 
-const pointerEventHandler = (handler) => (event) => {
+const pointerEventHandler = (handler, config) => (event) => {
   // Ignore pointers such as additional touches on a multi-touch screen
-  if (!event.isPrimary) {
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)) {
     return;
   }
 
@@ -101,10 +101,10 @@ const setupPointerEvents = ({
   move,
   down,
   up,
-}) => {
-  const moveListener = pointerEventHandler(move);
-  const downListener = pointerEventHandler(down);
-  const upListener = pointerEventHandler(up);
+}, config) => {
+  const moveListener = pointerEventHandler(move, config);
+  const downListener = pointerEventHandler(down, config);
+  const upListener = pointerEventHandler(up, config);
 
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);
@@ -138,7 +138,7 @@ const MODE_FILL = Symbol('atrament mode - fill');
 const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryEraser'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -147,7 +147,7 @@ class Atrament extends AtramentEventTarget {
   resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
-  secondaryEraser = false;
+  secondaryMouseButton = false;
 
   #context;
   #dirty = false;
@@ -158,7 +158,6 @@ class Atrament extends AtramentEventTarget {
   #mouse = new Mouse();
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
-  #secondaryEraserFromMode = MODE_DRAW;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
@@ -179,7 +178,7 @@ class Atrament extends AtramentEventTarget {
       move: this.#pointerMove.bind(this),
       down: this.#pointerDown.bind(this),
       up: this.#pointerUp.bind(this),
-    });
+    }, config);
 
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
@@ -188,7 +187,7 @@ class Atrament extends AtramentEventTarget {
     });
 
     this.canvas.addEventListener('contextmenu', (event) => {
-      if (this.secondaryEraser) {
+      if (this.secondaryMouseButton) {
         event.preventDefault();
       }
     });
@@ -470,17 +469,7 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    if (event.button === 2) {
-      if (this.secondaryEraser) {
-        this.#secondaryEraserFromMode = this.#mode;
-        this.mode = MODE_ERASE;
-      } else {
-        return;
-      }
-    } else if (this.mode === MODE_FILL) {
-      this.#fill();
-      return;
-    }
+    this.dispatchEvent('pointerdown', event);
 
     this.#mouse.down = true;
     // update position just in case
@@ -490,6 +479,8 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerUp(event) {
+    this.dispatchEvent('pointerup', event);
+
     if (this.#mode === MODE_FILL) {
       return;
     }
@@ -499,14 +490,6 @@ class Atrament extends AtramentEventTarget {
     }
 
     this.#mouse.down = false;
-
-    if (event.button === 2) {
-      if (this.secondaryEraser) {
-        this.mode = this.#secondaryEraserFromMode ?? MODE_DRAW;
-      }
-
-      return;
-    }
 
     if (this.#mouse.x === event.offsetX
       && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {

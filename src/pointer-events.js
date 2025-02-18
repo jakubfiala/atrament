@@ -1,6 +1,6 @@
-const pointerEventHandler = (handler) => (event) => {
+const pointerEventHandler = (handler, config) => (event) => {
   // Ignore pointers such as additional touches on a multi-touch screen
-  if (!event.isPrimary) {
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)) {
     return;
   }
 
@@ -16,10 +16,10 @@ export const setupPointerEvents = ({
   move,
   down,
   up,
-}) => {
-  const moveListener = pointerEventHandler(move);
-  const downListener = pointerEventHandler(down);
-  const upListener = pointerEventHandler(up);
+}, config) => {
+  const moveListener = pointerEventHandler(move, config);
+  const downListener = pointerEventHandler(down, config);
+  const upListener = pointerEventHandler(up, config);
 
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);

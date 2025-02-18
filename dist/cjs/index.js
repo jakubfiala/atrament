@@ -84,11 +84,8 @@ const lineDistance = (x1, y1, x2, y2) => {
 /* eslint-enable no-param-reassign */
 
 const pointerEventHandler = (handler) => (event) => {
-  // Ignore pointers such as additional touches on a multi-touch screen,
-  // as well as all mouse buttons other than the left button.
-  // `PointerEvent.button` is -1 if no button is pressed, but also for `pointermove` events,
-  // and this value is relevant to us. See https://w3c.github.io/pointerevents/#the-button-property
-  if (!event.isPrimary || event.button > 0) {
+  // Ignore pointers such as additional touches on a multi-touch screen
+  if (!event.isPrimary) {
     return;
   }
 
@@ -141,7 +138,7 @@ const MODE_FILL = Symbol('atrament mode - fill');
 const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryEraser'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -150,6 +147,7 @@ class Atrament extends AtramentEventTarget {
   resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
+  secondaryEraser = false;
 
   #context;
   #dirty = false;
@@ -160,6 +158,7 @@ class Atrament extends AtramentEventTarget {
   #mouse = new Mouse();
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
+  #secondaryEraserFromMode = MODE_DRAW;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
@@ -185,6 +184,12 @@ class Atrament extends AtramentEventTarget {
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
         this[key] = config[key];
+      }
+    });
+
+    this.canvas.addEventListener('contextmenu', (event) => {
+      if (this.secondaryEraser) {
+        event.preventDefault();
       }
     });
   }
@@ -254,13 +259,23 @@ class Atrament extends AtramentEventTarget {
       // because with higher pressure, the effect of distance
       // on the thickness ratio should be greater.
       const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
-      const ratio = (dist - MIN_LINE_THICKNESS) / range;
+      // In Erase mode, we don't want the actual adaptive behaviour,
+      // rather, we use a "mid-point" thickness derived from the weight setting.
+      const ratio = this.#mode === MODE_ERASE
+        ? 0.5
+        : (dist - MIN_LINE_THICKNESS) / range;
+      // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
-      // approach the target gradually
-      if (this.#thickness > targetThickness) {
-        this.#thickness -= THICKNESS_INCREMENT;
-      } else if (this.#thickness < targetThickness) {
-        this.#thickness += THICKNESS_INCREMENT;
+
+      if (this.#mode === MODE_ERASE) {
+        this.#thickness = targetThickness;
+      } else {
+        // approach the target gradually
+        if (this.#thickness > targetThickness) {
+          this.#thickness -= THICKNESS_INCREMENT;
+        } else if (this.#thickness < targetThickness) {
+          this.#thickness += THICKNESS_INCREMENT;
+        }
       }
     } else {
       this.#thickness = this.#weight;
@@ -463,8 +478,14 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    // if we are filling - fill and return
-    if (this.mode === MODE_FILL) {
+    if (event.button === 2) {
+      if (this.secondaryEraser) {
+        this.#secondaryEraserFromMode = this.#mode;
+        this.mode = MODE_ERASE;
+      } else {
+        return;
+      }
+    } else if (this.mode === MODE_FILL) {
       this.#fill();
       return;
     }
@@ -486,6 +507,14 @@ class Atrament extends AtramentEventTarget {
     }
 
     this.#mouse.down = false;
+
+    if (event.button === 2) {
+      if (this.secondaryEraser) {
+        this.mode = this.#secondaryEraserFromMode ?? MODE_DRAW;
+      }
+
+      return;
+    }
 
     if (this.#mouse.x === event.offsetX
       && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {

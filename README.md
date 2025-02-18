@@ -122,6 +122,12 @@ sketchpad.smoothing = 1.3;
 sketchpad.adaptiveStroke = false;
 ```
 
+- secondary mouse/touchpad button clicks can be used as a quick eraser. `false` by default.
+
+```js
+sketchpad.secondaryEraser = true;
+```
+
 - record stroke data (enables the `strokerecorded` event). `false` by default.
 
 ```js

@@ -22,7 +22,7 @@ export const MODE_FILL = Symbol('atrament mode - fill');
 export const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryEraser'];
 
 export default class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -31,6 +31,7 @@ export default class Atrament extends AtramentEventTarget {
   resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
+  secondaryEraser = false;
 
   #context;
   #dirty = false;
@@ -41,6 +42,7 @@ export default class Atrament extends AtramentEventTarget {
   #mouse = new Mouse();
   #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
+  #secondaryEraserFromMode = MODE_DRAW;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
   #weight = INITIAL_THICKNESS;
@@ -66,6 +68,12 @@ export default class Atrament extends AtramentEventTarget {
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
         this[key] = config[key];
+      }
+    });
+
+    this.canvas.addEventListener('contextmenu', (event) => {
+      if (this.secondaryEraser) {
+        event.preventDefault();
       }
     });
   }
@@ -135,13 +143,23 @@ export default class Atrament extends AtramentEventTarget {
       // because with higher pressure, the effect of distance
       // on the thickness ratio should be greater.
       const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
-      const ratio = (dist - MIN_LINE_THICKNESS) / range;
+      // In Erase mode, we don't want the actual adaptive behaviour,
+      // rather, we use a "mid-point" thickness derived from the weight setting.
+      const ratio = this.#mode === MODE_ERASE
+        ? 0.5
+        : (dist - MIN_LINE_THICKNESS) / range;
+      // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
-      // approach the target gradually
-      if (this.#thickness > targetThickness) {
-        this.#thickness -= THICKNESS_INCREMENT;
-      } else if (this.#thickness < targetThickness) {
-        this.#thickness += THICKNESS_INCREMENT;
+
+      if (this.#mode === MODE_ERASE) {
+        this.#thickness = targetThickness;
+      } else {
+        // approach the target gradually
+        if (this.#thickness > targetThickness) {
+          this.#thickness -= THICKNESS_INCREMENT;
+        } else if (this.#thickness < targetThickness) {
+          this.#thickness += THICKNESS_INCREMENT;
+        }
       }
     } else {
       this.#thickness = this.#weight;
@@ -344,8 +362,14 @@ export default class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    // if we are filling - fill and return
-    if (this.mode === MODE_FILL) {
+    if (event.button === 2) {
+      if (this.secondaryEraser) {
+        this.#secondaryEraserFromMode = this.#mode;
+        this.mode = MODE_ERASE;
+      } else {
+        return;
+      }
+    } else if (this.mode === MODE_FILL) {
       this.#fill();
       return;
     }
@@ -367,6 +391,14 @@ export default class Atrament extends AtramentEventTarget {
     }
 
     this.#mouse.down = false;
+
+    if (event.button === 2) {
+      if (this.secondaryEraser) {
+        this.mode = this.#secondaryEraserFromMode ?? MODE_DRAW;
+      }
+
+      return;
+    }
 
     if (this.#mouse.x === event.offsetX
       && this.#mouse.y === event.offsetY && pathDrawingModes.includes(this.mode)) {

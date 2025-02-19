@@ -158,10 +158,13 @@ export default class Atrament extends AtramentEventTarget {
 
     this.#context.lineWidth = this.#thickness;
 
+    const segmentStart = this.#extrinsicToIntrinsic(prevX, prevY);
+    const segmentEnd = this.#extrinsicToIntrinsic(procX, procY);
+
     // Draw the segment using quad interpolation.
     this.#context.beginPath();
-    this.#context.moveTo(prevX, prevY);
-    this.#context.quadraticCurveTo(prevX, prevY, procX, procY);
+    this.#context.moveTo(...segmentStart);
+    this.#context.quadraticCurveTo(...segmentStart, ...segmentEnd);
     this.#context.closePath();
     this.#context.stroke();
 
@@ -288,6 +291,14 @@ export default class Atrament extends AtramentEventTarget {
 
   get dirty() {
     return this.#dirty;
+  }
+
+  // Translates between extrinsic (DOM) coordinates and intrinsic (bitmap) coordinates.
+  // Returns an array for easy passing into argument lists of CanvasRenderingContext2D methods.
+  #extrinsicToIntrinsic(offsetX, offsetY) {
+    const x = (offsetX / this.canvas.offsetWidth) * this.canvas.width;
+    const y = (offsetY / this.canvas.offsetHeight) * this.canvas.height;
+    return [x, y];
   }
 
   static #setupCanvas(selector, config) {

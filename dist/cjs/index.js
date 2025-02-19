@@ -272,10 +272,11 @@ class Atrament extends AtramentEventTarget {
       this.#thickness = this.#weight;
     }
 
-    this.#context.lineWidth = this.#thickness;
+    // Adjust thickness to intrinsic canvas size;
+    this.#context.lineWidth = (this.#thickness / this.canvas.offsetWidth) * this.canvas.width;
 
-    const segmentStart = this.#extrinsicToIntrinsic(prevX, prevY);
-    const segmentEnd = this.#extrinsicToIntrinsic(procX, procY);
+    const segmentStart = this.#extrinsicToIntrinsicPoint(prevX, prevY);
+    const segmentEnd = this.#extrinsicToIntrinsicPoint(procX, procY);
 
     // Draw the segment using quad interpolation.
     this.#context.beginPath();
@@ -411,7 +412,7 @@ class Atrament extends AtramentEventTarget {
 
   // Translates between extrinsic (DOM) coordinates and intrinsic (bitmap) coordinates.
   // Returns an array for easy passing into argument lists of CanvasRenderingContext2D methods.
-  #extrinsicToIntrinsic(offsetX, offsetY) {
+  #extrinsicToIntrinsicPoint(offsetX, offsetY) {
     const x = (offsetX / this.canvas.offsetWidth) * this.canvas.width;
     const y = (offsetY / this.canvas.offsetHeight) * this.canvas.height;
     return [x, y];

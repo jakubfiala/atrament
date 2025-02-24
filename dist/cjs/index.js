@@ -144,7 +144,6 @@ class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
   canvas;
   recordStrokes = false;
-  resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
@@ -425,11 +424,8 @@ class Atrament extends AtramentEventTarget {
     else if (typeof selector === 'string') canvas = document.querySelector(selector);
     else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
     if (!canvas) throw new Error('atrament: canvas not found');
-    // since this method is static, we have to add a fallback to the resolution here
-    // TODO: see if these methods really have to be static.
-    const scale = config.resolution || window.devicePixelRatio;
-    canvas.width = (config.width || canvas.width) * scale;
-    canvas.height = (config.height || canvas.height) * scale;
+    canvas.width = config.width || canvas.width;
+    canvas.height = config.height || canvas.height;
     canvas.style.touchAction = 'none';
 
     return canvas;
@@ -437,10 +433,6 @@ class Atrament extends AtramentEventTarget {
 
   static #setupContext(canvas, config) {
     const context = canvas.getContext('2d');
-    // since this method is static, we have to add a fallback to the resolution here
-    // TODO: see if these methods really have to be static.
-    const scale = config.resolution || window.devicePixelRatio;
-    context.scale(scale, scale);
     context.globalCompositeOperation = 'source-over';
     context.globalAlpha = 1;
     context.strokeStyle = config.color || 'rgba(0,0,0,1)';
@@ -482,6 +474,11 @@ class Atrament extends AtramentEventTarget {
 
   #pointerDown(event) {
     this.dispatchEvent('pointerdown', event);
+
+    if (this.mode === MODE_FILL) {
+      this.#fill();
+      return;
+    }
 
     this.#mouse.down = true;
     // update position just in case
@@ -545,8 +542,8 @@ class Atrament extends AtramentEventTarget {
       width: this.canvas.width,
       height: this.canvas.height,
       startColor,
-      startX: x * this.resolution,
-      startY: y * this.resolution,
+      startX: x,
+      startY: y,
     };
 
     if (!this.#filling) {

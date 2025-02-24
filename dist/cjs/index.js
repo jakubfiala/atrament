@@ -186,7 +186,7 @@ class Atrament extends AtramentEventTarget {
     });
 
     this.canvas.addEventListener('contextmenu', (event) => {
-      if (this.secondaryMouseButton) {
+      if (this.secondaryMouseButton && this.mode !== MODE_DISABLED) {
         event.preventDefault();
       }
     });

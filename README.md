@@ -10,7 +10,7 @@ Atrament is a library for drawing and handwriting on the HTML canvas.
 Its goal is for drawing to feel natural and comfortable, and the result to be smooth and pleasing.
 Atrament does not store the stroke paths itself - instead, it draws directly onto the canvas bitmap,
 just like an ink pen onto a piece of paper ("atrament" means ink in Slovak and Polish).
-This makes it suitable for certain applications, and not quite ideal for others.
+This makes it suitable for certain applications, and not quite ideal for others - see Alternatives.
 
 ⚠️ **Note:** From version 4, Atrament supports evergeen browsers (Firefox, Chrome and Chromium-based browsers)
 and Safari 15 or above. If your application must support older browsers, please use version 3. You can view the v3 documentation [here](https://github.com/jakubfiala/atrament/blob/ded0a8289c7b1ff7a79dbad36893986da09f37fc/README.md).
@@ -30,6 +30,7 @@ Enjoy!
   - [Installation](#installation)
   - [Usage](#usage)
   - [Options \& config](#options--config)
+  - [Fill mode](#fill-mode)
   - [Data model](#data-model)
   - [High DPI screens](#high-dpi-screens)
   - [Events](#events)
@@ -99,14 +100,14 @@ sketchpad.weight = 20; //in pixels
 sketchpad.color = '#ff485e'; //just like CSS
 ```
 
-- toggle between modes:
+- toggle between modes (**Note:** for Fill mode, you must also set the `fillWorker` config option in the constructor. See [next section](#fill-mode))
 
 ```js
 import { MODE_DRAW, MODE_ERASE, MODE_FILL, MODE_DISABLED } from 'atrament';
 
 sketchpad.mode = MODE_DRAW; // default
 sketchpad.mode = MODE_ERASE; // eraser tool
-sketchpad.mode = MODE_FILL; // click to fill area
+sketchpad.mode = MODE_FILL; // click to fill area (see next section for more info)
 sketchpad.mode = MODE_DISABLED; // no modification to the canvas (will still fire stroke events)
 ```
 
@@ -126,6 +127,18 @@ sketchpad.adaptiveStroke = false;
 
 ```js
 sketchpad.recordStrokes = true;
+```
+
+## Fill mode
+
+From version 5.0.0, Atrament does not bundle the fill Worker within the main bundle. This is so applications that don't require fill mode
+benefit from an approx. 60% smaller import size. The fill module can be imported separately and injected into Atrament via the constructor:
+
+```js
+import Atrament from 'atrament';
+import fill from 'atrament/fill';
+
+const sketchpad = new Atrament({ fill });
 ```
 
 ## Data model
@@ -268,3 +281,16 @@ You should be able to then build atrament by simply running `npm run build` and 
 
 The demo app is useful for development, and it's set up to use the compiled files in `/dist`. It's a plain HTML website which can be served with any local server.
 A good way to develop using the demo is to run `python -m http.server` (with Python 3) in the `/demo` directory. The demo will be served on `localhost:8000`.
+
+## Alternatives
+
+Atrament's philosophy is to provide a **simple** and **small** tool that takes care of everything from pointer events to drawing pixels on screen.
+Atrament uses the native Canvas API to draw strokes, instead of computing custom curves. This means it's very lightweight (5.9kB gzipped with fill mode, 2.4kB without)
+and pretty much as fast as the browser allows.
+
+This does mean Atrament's rendering quality is limited by the Canvas API. If your application requires higher drawing quality, there are libraries such as
+[perfect-freehand](https://github.com/steveruizok/perfect-freehand) which compute their own curves and achieve somewhat more pleasing, higher-fidelity results.
+This comes at the expense of size (`perfect-freehand` is almost 2kB gzipped to generate the curve shape, but you need to take care of rendering it, handling pointer interactions, etc.).
+
+For a more fully-featured solution including drawing shapes, graphs, text, built-in Undo/Redo and many other features,
+you might want to consider a larger tool such as [excalidraw](https://github.com/excalidraw/excalidraw).

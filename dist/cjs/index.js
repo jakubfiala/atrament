@@ -477,6 +477,10 @@ class Atrament extends AtramentEventTarget {
   }
 
   #setupFill({ FillWorker }) {
+    if (!FillWorker) {
+      return;
+    }
+
     this.#fillWorker = new FillWorker();
     this.#fillWorker.addEventListener('message', ({ data }) => {
       if (data.type === 'fill-result') {

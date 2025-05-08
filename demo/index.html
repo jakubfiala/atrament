@@ -91,6 +91,19 @@
           <input id="secondary-eraser" type="checkbox" autocomplete="off" />
           <label for="secondary-eraser">Use secondary mouse button as eraser</label>
         </div>
+        <details open>
+          <summary>Pressure settings</summary>
+          <div><label for="pressure-influence">Pressure influence</label></div>
+          <input
+            type="range"
+            id="pressure-influence"
+            min="0"
+            max="10"
+            value="1"
+            step="0.1"
+            autocomplete="off"
+          />
+        </details>
         <div>
           <label for="mode">Mode</label>
           <select id="mode" autocomplete="off">

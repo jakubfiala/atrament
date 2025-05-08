@@ -14,6 +14,7 @@ const clearButton = document.getElementById('clear');
 const recordButton = document.getElementById('recordButton');
 const playButton = document.getElementById('playButton');
 const weightInput = document.getElementById('weight');
+const pressureInfluenceInput = document.getElementById('pressure-influence');
 const smoothingInput = document.getElementById('smoothing');
 const adaptiveInput = document.getElementById('adaptive');
 const secondaryEraserInput = document.getElementById('secondary-eraser');
@@ -50,6 +51,10 @@ playButton.addEventListener('click', () => {
 
 weightInput.addEventListener('input', ({ target: { value } }) => {
   atrament.weight = parseFloat(value);
+});
+
+pressureInfluenceInput.addEventListener('input', ({ target: { value } }) => {
+  atrament.pressureInfluence = parseFloat(value);
 });
 
 smoothingInput.addEventListener('change', ({ target: { value } }) => {

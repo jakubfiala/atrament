@@ -31,6 +31,7 @@ export default class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
+  pressureInfluence = 1;
 
   #context;
   #dirty = false;
@@ -140,7 +141,7 @@ export default class Atrament extends AtramentEventTarget {
       // Thickness range is inversely proportional to pressure,
       // because with higher pressure, the effect of distance
       // on the thickness ratio should be greater.
-      const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
+      const range = LINE_THICKNESS_RANGE * (1 - this.pressureInfluence * this.#pressure);
       const ratio = (dist - MIN_LINE_THICKNESS) / range;
       // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;

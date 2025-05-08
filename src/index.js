@@ -139,7 +139,9 @@ export default class Atrament extends AtramentEventTarget {
     // Adaptive stroke allows an effect where thickness changes
     // over the course of the stroke. This simulates the variation in
     // ink discharge of a physical pen.
-    if (this.adaptiveStroke) {
+    // For pressure-sensitive devices, there will be natural variation,
+    // so we don't apply adaptive stroke.
+    if (this.adaptiveStroke && this.#pressure === DEFAULT_PRESSURE) {
       const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
       // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weightWithPressure)

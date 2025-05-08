@@ -93,17 +93,28 @@
         </div>
         <details open>
           <summary>Pressure settings</summary>
-          <div><label for="pressure-influence">Pressure influence</label></div>
+          <div><label for="pressure-low">Pressure low</label></div>
           <input
             type="range"
-            id="pressure-influence"
+            id="pressure-low"
             min="0"
-            max="10"
-            value="1"
+            max="1"
+            value="0"
             step="0.1"
             autocomplete="off"
           />
-          <output id="pressure-influence-output">1</output>
+          <output id="pressure-low-output">0</output>
+          <div><label for="pressure-high">Pressure high</label></div>
+          <input
+            type="range"
+            id="pressure-high"
+            min="1"
+            max="10"
+            value="2"
+            step="0.1"
+            autocomplete="off"
+          />
+          <output id="pressure-high-output">2</output>
         </details>
         <div>
           <label for="mode">Mode</label>

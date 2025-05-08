@@ -130,6 +130,9 @@ const WEIGHT_SPREAD = 30;
 const INITIAL_THICKNESS = 2;
 const DEFAULT_PRESSURE = 0.5;
 
+const scale = (value, smin, smax, tmin, tmax) => ((value - smin) * (tmax - tmin))
+  / (smax - smin) + tmin;
+
 // eslint-disable-next-line import/no-unresolved
 
 const MODE_DRAW = Symbol('atrament mode - draw');
@@ -147,7 +150,8 @@ class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
-  pressureInfluence = 1;
+  pressureLow = 0;
+  pressureHigh = 2;
 
   #context;
   #dirty = false;
@@ -254,13 +258,10 @@ class Atrament extends AtramentEventTarget {
     // over the course of the stroke. This simulates the variation in
     // ink discharge of a physical pen.
     if (this.adaptiveStroke) {
-      // Thickness range is inversely proportional to pressure,
-      // because with higher pressure, the effect of distance
-      // on the thickness ratio should be greater.
-      const range = LINE_THICKNESS_RANGE * (1 - this.pressureInfluence * this.#pressure);
-      const ratio = (dist - MIN_LINE_THICKNESS) / range;
+      const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
       // Calculate target thickness based on weight settings.
-      const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
+      const targetThickness = ratio * (this.#maxWeight - this.#weightWithPressure)
+        + this.#weightWithPressure;
 
       // approach the target gradually
       if (this.#thickness > targetThickness) {
@@ -269,7 +270,7 @@ class Atrament extends AtramentEventTarget {
         this.#thickness += THICKNESS_INCREMENT;
       }
     } else {
-      this.#thickness = this.#weight;
+      this.#thickness = this.#weightWithPressure;
     }
 
     // Adjust thickness to intrinsic canvas size;
@@ -416,6 +417,18 @@ class Atrament extends AtramentEventTarget {
     const x = (offsetX / this.canvas.offsetWidth) * this.canvas.width;
     const y = (offsetY / this.canvas.offsetHeight) * this.canvas.height;
     return [x, y];
+  }
+
+  get #weightWithPressure() {
+    if (this.#pressure === 0.5) {
+      return this.#weight;
+    }
+
+    if (this.#pressure < 0.5) {
+      return this.#weight * scale(this.#pressure, 0, 0.5, this.pressureLow, 1);
+    }
+
+    return this.#weight * scale(this.#pressure, 0.5, 1, 1, this.pressureHigh);
   }
 
   static #setupCanvas(selector, config) {

@@ -14,8 +14,10 @@ const clearButton = document.getElementById('clear');
 const recordButton = document.getElementById('recordButton');
 const playButton = document.getElementById('playButton');
 const weightInput = document.getElementById('weight');
-const pressureInfluenceInput = document.getElementById('pressure-influence');
-const pressureInfluenceOutput = document.getElementById('pressure-influence-output');
+const pressureLowInput = document.getElementById('pressure-low');
+const pressureLowOutput = document.getElementById('pressure-low-output');
+const pressureHighInput = document.getElementById('pressure-high');
+const pressureHighOutput = document.getElementById('pressure-high-output');
 const smoothingInput = document.getElementById('smoothing');
 const adaptiveInput = document.getElementById('adaptive');
 const secondaryEraserInput = document.getElementById('secondary-eraser');
@@ -54,9 +56,13 @@ weightInput.addEventListener('input', ({ target: { value } }) => {
   atrament.weight = parseFloat(value);
 });
 
-pressureInfluenceInput.addEventListener('input', ({ target: { value } }) => {
-  atrament.pressureInfluence = parseFloat(value);
-  pressureInfluenceOutput.innerText = value;
+pressureLowInput.addEventListener('input', ({ target: { value } }) => {
+  atrament.pressureLow = parseFloat(value);
+  pressureLowOutput.innerText = value;
+});
+pressureHighInput.addEventListener('input', ({ target: { value } }) => {
+  atrament.pressureHigh = parseFloat(value);
+  pressureHighOutput.innerText = value;
 });
 
 smoothingInput.addEventListener('change', ({ target: { value } }) => {

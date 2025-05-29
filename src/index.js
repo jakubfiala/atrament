@@ -23,7 +23,7 @@ export const MODE_FILL = Symbol('atrament mode - fill');
 export const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'pressureLow', 'pressureHigh'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh'];
 
 export default class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -32,6 +32,7 @@ export default class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
+  ignoreModifiers = false;
   pressureLow = 0;
   pressureHigh = 2;
 

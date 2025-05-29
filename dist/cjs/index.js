@@ -85,7 +85,8 @@ const lineDistance = (x1, y1, x2, y2) => {
 
 const pointerEventHandler = (handler, config) => (event) => {
   // Ignore pointers such as additional touches on a multi-touch screen
-  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)) {
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)
+    || (config.ignoreModifiers && (event.altKey || event.ctrlKey || event.metaKey))) {
     return;
   }
 
@@ -141,7 +142,7 @@ const MODE_FILL = Symbol('atrament mode - fill');
 const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -150,6 +151,7 @@ class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
+  ignoreModifiers = false;
   pressureLow = 0;
   pressureHigh = 2;
 

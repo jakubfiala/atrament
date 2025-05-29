@@ -1,6 +1,7 @@
 const pointerEventHandler = (handler, config) => (event) => {
   // Ignore pointers such as additional touches on a multi-touch screen
-  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)) {
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)
+    || (config.ignoreModifiers && (event.altKey || event.ctrlKey || event.metaKey))) {
     return;
   }
 

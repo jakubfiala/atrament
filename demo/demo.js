@@ -34,6 +34,7 @@ const modes = {
 const atrament = new Atrament(canvas, {
   width: canvas.offsetWidth,
   height: canvas.offsetHeight,
+  ignoreModifiers: true,
 });
 
 toolbarToggle.addEventListener('click', () => {
@@ -74,7 +75,7 @@ adaptiveInput.addEventListener('change', ({ target: { checked } }) => {
 });
 
 secondaryEraserInput.addEventListener('change', ({ target: { checked } }) => {
-  atrament.secondaryEraser = checked;
+  atrament.secondaryMouseButton = checked;
 });
 
 modeInput.addEventListener('change', ({ target: { value } }) => {

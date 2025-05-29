@@ -122,6 +122,18 @@ sketchpad.smoothing = 1.3;
 sketchpad.adaptiveStroke = false;
 ```
 
+- set pressure sensitivity. Note: if your input device sends pressure data, adaptive stroke will have no effect, since its purpose is to emulate changing pen pressure
+
+```js
+// the lower bound of the pressure scale:
+// at pressure = 0 the stroke width will be multiplied by 0
+sketchpad.pressureLow = 0;
+// the lower bound of the pressure scale:
+// at pressure = 1 the stroke width will be multiplied by 2
+sketchpad.pressureHigh = 2;
+// at pressure = 0.5 the stroke width remains the same
+```
+
 - secondary mouse/touchpad button clicks can be used as a quick eraser. `false` by default.
 
 ```js
@@ -138,7 +150,7 @@ sketchpad.recordStrokes = true;
 
 - Atrament models its output as a set of independent _strokes_. Only one stroke can be drawn at a time.
 - Each stroke consists of a list of _segments_, which correspond to all the pointer positions recorded during drawing.
-- Each segment consists of a _point_ which contains `x` and `y` coordinates, and a `time` which is the number of milliseconds since the stroke began, until the segment was drawn.
+- Each segment consists of a _point_ which contains `x` and `y` coordinates, a `time` which is the number of milliseconds since the stroke began, until the segment was drawn, and a `pressure` value (0.-1.) which is either the recorded stylus pressure or 0.5 if no pressure data is available.
 - Each stroke also contains information about the drawing settings at the time of drawing (see Events > Stroke recording).
 
 
@@ -210,6 +222,7 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
     {
       point: { x, y },
       time,
+      pressure,
     }
   ],
   color,
@@ -256,12 +269,12 @@ atrament.beginStroke(firstPoint.x, firstPoint.y);
 
 let prevPoint = firstPoint;
 while (segments.length > 0) {
-  const point = segments.shift().point;
+  const segment = segments.shift();
 
   // the `draw` method accepts the current real coordinates
   // (i. e. actual cursor position), and the previous processed (filtered)
   // position. It returns an object with the current processed position.
-  const { x, y } = atrament.draw(point.x, point.y, prevPoint.x, prevPoint.y);
+  const { x, y } = atrament.draw(segment.point.x, segment.point.y, prevPoint.x, prevPoint.y, segment.pressure);
 
   // the processed position is the one where the line is actually drawn to
   // so we have to store it and pass it to `draw` in the next step

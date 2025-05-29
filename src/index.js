@@ -42,7 +42,6 @@ export default class Atrament extends AtramentEventTarget {
   #fillWorker = new FillWorker();
   #mode = MODE_DRAW;
   #mouse = new Mouse();
-  #pressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
@@ -120,8 +119,9 @@ export default class Atrament extends AtramentEventTarget {
    * @param {number} y current Y coordinate
    * @param {number} previousX previous X coordinate
    * @param {number} previousY previous Y coordinate
+   * @param {number} pressure the pointer pressure at this point (defaults to 0.5)
    */
-  draw(x, y, previousX, previousY) {
+  draw(x, y, previousX, previousY, pressure = DEFAULT_PRESSURE) {
     // If the user clicks (or double clicks) without moving the mouse,
     // previousX/Y will be 0. In this case, we don't want to draw a line from (0,0) to (x,y),
     // but a "point" from (x,y) to (x,y).
@@ -141,11 +141,13 @@ export default class Atrament extends AtramentEventTarget {
     // ink discharge of a physical pen.
     // For pressure-sensitive devices, there will be natural variation,
     // so we don't apply adaptive stroke.
-    if (this.adaptiveStroke && this.#pressure === DEFAULT_PRESSURE) {
+    const weightWithPressure = this.#getWeightWithPressure(pressure);
+
+    if (this.adaptiveStroke && pressure === DEFAULT_PRESSURE) {
       const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
       // Calculate target thickness based on weight settings.
-      const targetThickness = ratio * (this.#maxWeight - this.#weightWithPressure)
-        + this.#weightWithPressure;
+      const targetThickness = ratio * (this.#maxWeight - weightWithPressure)
+        + weightWithPressure;
 
       // approach the target gradually
       if (this.#thickness > targetThickness) {
@@ -154,7 +156,7 @@ export default class Atrament extends AtramentEventTarget {
         this.#thickness += THICKNESS_INCREMENT;
       }
     } else {
-      this.#thickness = this.#weightWithPressure;
+      this.#thickness = weightWithPressure;
     }
 
     // Adjust thickness to intrinsic canvas size;
@@ -174,6 +176,7 @@ export default class Atrament extends AtramentEventTarget {
       this.#strokeMemory.push({
         point: new Point(x, y),
         time: performance.now() - this.strokeTimestamp,
+        pressure,
       });
 
       this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
@@ -303,16 +306,16 @@ export default class Atrament extends AtramentEventTarget {
     return [x, y];
   }
 
-  get #weightWithPressure() {
-    if (this.#pressure === 0.5) {
+  #getWeightWithPressure(pressure) {
+    if (pressure === 0.5) {
       return this.#weight;
     }
 
-    if (this.#pressure < 0.5) {
-      return this.#weight * scale(this.#pressure, 0, 0.5, this.pressureLow, 1);
+    if (pressure < 0.5) {
+      return this.#weight * scale(pressure, 0, 0.5, this.pressureLow, 1);
     }
 
-    return this.#weight * scale(this.#pressure, 0.5, 1, 1, this.pressureHigh);
+    return this.#weight * scale(pressure, 0.5, 1, 1, this.pressureHigh);
   }
 
   static #setupCanvas(selector, config) {
@@ -348,13 +351,12 @@ export default class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
-        this.#pressure = position.pressure;
-
         const { x: newX, y: newY } = this.draw(
           x,
           y,
           this.#mouse.previous.x,
           this.#mouse.previous.y,
+          position.pressure,
         );
 
         this.#mouse.set(x, y);
@@ -401,6 +403,7 @@ export default class Atrament extends AtramentEventTarget {
         this.#mouse.y,
         this.#mouse.previous.x,
         this.#mouse.previous.y,
+        event.pressure,
       );
     }
 

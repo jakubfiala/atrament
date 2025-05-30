@@ -268,13 +268,10 @@ class Atrament extends AtramentEventTarget {
     // ink discharge of a physical pen.
     // For pressure-sensitive devices, there will be natural variation,
     // so we don't apply adaptive stroke.
-    const weightWithPressure = this.#getWeightWithPressure(smoothedPressure);
-
     if (this.adaptiveStroke && pressure === DEFAULT_PRESSURE) {
       const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
       // Calculate target thickness based on weight settings.
-      const targetThickness = ratio * (this.#maxWeight - weightWithPressure)
-        + weightWithPressure;
+      const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
 
       // approach the target gradually
       if (this.#thickness > targetThickness) {
@@ -283,7 +280,7 @@ class Atrament extends AtramentEventTarget {
         this.#thickness += THICKNESS_INCREMENT;
       }
     } else {
-      this.#thickness = weightWithPressure;
+      this.#thickness = this.#getWeightWithPressure(smoothedPressure);
     }
 
     // Adjust thickness to intrinsic canvas size;
@@ -532,7 +529,7 @@ class Atrament extends AtramentEventTarget {
         this.#mouse.y,
         this.#mouse.previous.x,
         this.#mouse.previous.y,
-        event.pressure,
+        this.#previousPressure,
       );
     }
 

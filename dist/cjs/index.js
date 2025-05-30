@@ -143,7 +143,7 @@ const MODE_FILL = Symbol('atrament mode - fill');
 const MODE_DISABLED = Symbol('atrament mode - disabled');
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh', 'pressureSmoothing'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
@@ -155,6 +155,7 @@ class Atrament extends AtramentEventTarget {
   ignoreModifiers = false;
   pressureLow = 0;
   pressureHigh = 2;
+  pressureSmoothing = 0.3;
 
   #context;
   #dirty = false;
@@ -163,6 +164,7 @@ class Atrament extends AtramentEventTarget {
   #fillWorker = new WorkerFactory();
   #mode = MODE_DRAW;
   #mouse = new Mouse();
+  #previousPressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
@@ -254,6 +256,10 @@ class Atrament extends AtramentEventTarget {
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
 
+    // low-pass filtering pressure to avoid jagged stroke ends
+    // where stylus pressure tends to be very low
+    const smoothedPressure = pressure - (pressure - this.#previousPressure) * this.pressureSmoothing;
+
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
 
@@ -262,7 +268,7 @@ class Atrament extends AtramentEventTarget {
     // ink discharge of a physical pen.
     // For pressure-sensitive devices, there will be natural variation,
     // so we don't apply adaptive stroke.
-    const weightWithPressure = this.#getWeightWithPressure(pressure);
+    const weightWithPressure = this.#getWeightWithPressure(smoothedPressure);
 
     if (this.adaptiveStroke && pressure === DEFAULT_PRESSURE) {
       const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
@@ -482,6 +488,7 @@ class Atrament extends AtramentEventTarget {
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
+        this.#previousPressure = position.pressure;
       } else {
         this.#mouse.set(x, y);
         this.#mouse.previous.set(x, y);
@@ -500,6 +507,7 @@ class Atrament extends AtramentEventTarget {
     this.#mouse.down = true;
     // update position just in case
     this.#pointerMove(event);
+    this.#previousPressure = event.pressure;
 
     this.beginStroke(this.#mouse.previous.x, this.#mouse.previous.y);
   }

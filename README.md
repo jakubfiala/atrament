@@ -132,6 +132,12 @@ sketchpad.pressureLow = 0;
 // at pressure = 1 the stroke width will be multiplied by 2
 sketchpad.pressureHigh = 2;
 // at pressure = 0.5 the stroke width remains the same
+
+// Amount of low-pass filtering applied to the pressure values.
+// more smoothing might help remove artifacts at the end of strokes
+// where the pressure-sensitive stylus has very low pressure.
+// Range: 0-1 Default: 0.3
+sketchpad.pressureSmoothing = 0.4;
 ```
 
 - secondary mouse/touchpad button clicks can be used as a quick eraser. `false` by default.

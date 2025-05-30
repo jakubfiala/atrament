@@ -18,6 +18,8 @@ const pressureLowInput = document.getElementById('pressure-low');
 const pressureLowOutput = document.getElementById('pressure-low-output');
 const pressureHighInput = document.getElementById('pressure-high');
 const pressureHighOutput = document.getElementById('pressure-high-output');
+const pressureSmoothingInput = document.getElementById('pressure-smoothing-input');
+const pressureSmoothingOutput = document.getElementById('pressure-smoothing-output');
 const smoothingInput = document.getElementById('smoothing');
 const adaptiveInput = document.getElementById('adaptive');
 const secondaryEraserInput = document.getElementById('secondary-eraser');
@@ -64,6 +66,10 @@ pressureLowInput.addEventListener('input', ({ target: { value } }) => {
 pressureHighInput.addEventListener('input', ({ target: { value } }) => {
   atrament.pressureHigh = parseFloat(value);
   pressureHighOutput.innerText = value;
+});
+pressureSmoothingInput.addEventListener('input', ({ target: { value } }) => {
+  atrament.pressureSmoothing = parseFloat(value);
+  pressureSmoothingOutput.innerText = value;
 });
 
 smoothingInput.addEventListener('change', ({ target: { value } }) => {

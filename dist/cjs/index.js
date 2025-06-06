@@ -137,10 +137,10 @@ const scale = (value, smin, smax, tmin, tmax) => ((value - smin) * (tmax - tmin)
 
 // eslint-disable-next-line import/no-unresolved
 
-const MODE_DRAW = Symbol('atrament mode - draw');
-const MODE_ERASE = Symbol('atrament mode - erase');
-const MODE_FILL = Symbol('atrament mode - fill');
-const MODE_DISABLED = Symbol('atrament mode - disabled');
+const MODE_DRAW = 'draw';
+const MODE_ERASE = 'erase';
+const MODE_FILL = 'fill';
+const MODE_DISABLED = 'disabled';
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
 const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh', 'pressureSmoothing'];

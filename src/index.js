@@ -17,10 +17,10 @@ import {
 } from './constants.js';
 import { scale } from './util.js';
 
-export const MODE_DRAW = Symbol('atrament mode - draw');
-export const MODE_ERASE = Symbol('atrament mode - erase');
-export const MODE_FILL = Symbol('atrament mode - fill');
-export const MODE_DISABLED = Symbol('atrament mode - disabled');
+export const MODE_DRAW = 'draw';
+export const MODE_ERASE = 'erase';
+export const MODE_FILL = 'fill';
+export const MODE_DISABLED = 'disabled';
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
 const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh', 'pressureSmoothing'];

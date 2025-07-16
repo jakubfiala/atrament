@@ -1,9 +1,8 @@
-const pointerEventHandler = (handler) => (event) => {
-  // Ignore pointers such as additional touches on a multi-touch screen,
-  // as well as all mouse buttons other than the left button.
-  // `PointerEvent.button` is -1 if no button is pressed, but also for `pointermove` events,
-  // and this value is relevant to us. See https://w3c.github.io/pointerevents/#the-button-property
-  if (!event.isPrimary || event.button > 0) {
+const pointerEventHandler = (handler, config) => (event) => {
+  // Ignore pointers such as additional touches on a multi-touch screen
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)
+    || (config.ignoreModifiers
+      && (event.altKey || event.ctrlKey || event.metaKey || event.button === 1))) {
     return;
   }
 
@@ -19,10 +18,10 @@ export const setupPointerEvents = ({
   move,
   down,
   up,
-}) => {
-  const moveListener = pointerEventHandler(move);
-  const downListener = pointerEventHandler(down);
-  const upListener = pointerEventHandler(up);
+}, config) => {
+  const moveListener = pointerEventHandler(move, config);
+  const downListener = pointerEventHandler(down, config);
+  const upListener = pointerEventHandler(up, config);
 
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);

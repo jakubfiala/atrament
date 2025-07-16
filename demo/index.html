@@ -88,6 +88,46 @@
           <label for="adaptive">Adaptive stroke</label>
         </div>
         <div>
+          <input id="secondary-eraser" type="checkbox" autocomplete="off" />
+          <label for="secondary-eraser">Use secondary mouse button as eraser</label>
+        </div>
+        <details open>
+          <summary>Pressure settings</summary>
+          <div><label for="pressure-low">Pressure low</label></div>
+          <input
+            type="range"
+            id="pressure-low"
+            min="0"
+            max="1"
+            value="0"
+            step="0.1"
+            autocomplete="off"
+          />
+          <output id="pressure-low-output">0</output>
+          <div><label for="pressure-high">Pressure high</label></div>
+          <input
+            type="range"
+            id="pressure-high"
+            min="1"
+            max="10"
+            value="2"
+            step="0.1"
+            autocomplete="off"
+          />
+          <output id="pressure-high-output">2</output>
+          <div><label for="pressure-smoothing-input">Pressure Smoothing</label></div>
+          <input
+            id="pressure-smoothing-input"
+            type="range"
+            min="0.1"
+            max="1"
+            value="0.3"
+            step="0.01"
+            autocomplete="off"
+          />
+          <output id="pressure-smoothing-output">0.3</output>
+        </details>
+        <div>
           <label for="mode">Mode</label>
           <select id="mode" autocomplete="off">
             <option value="draw" default>Draw</option>

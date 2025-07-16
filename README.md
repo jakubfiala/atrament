@@ -123,6 +123,30 @@ sketchpad.smoothing = 1.3;
 sketchpad.adaptiveStroke = false;
 ```
 
+- set pressure sensitivity. Note: if your input device sends pressure data, adaptive stroke will have no effect, since its purpose is to emulate changing pen pressure
+
+```js
+// the lower bound of the pressure scale:
+// at pressure = 0 the stroke width will be multiplied by 0
+sketchpad.pressureLow = 0;
+// the lower bound of the pressure scale:
+// at pressure = 1 the stroke width will be multiplied by 2
+sketchpad.pressureHigh = 2;
+// at pressure = 0.5 the stroke width remains the same
+
+// Amount of low-pass filtering applied to the pressure values.
+// more smoothing might help remove artifacts at the end of strokes
+// where the pressure-sensitive stylus has very low pressure.
+// Range: 0-1 Default: 0.3
+sketchpad.pressureSmoothing = 0.4;
+```
+
+- secondary mouse/touchpad button clicks can be used as a quick eraser. `false` by default.
+
+```js
+sketchpad.secondaryEraser = true;
+```
+
 - record stroke data (enables the `strokerecorded` event). `false` by default.
 
 ```js
@@ -145,7 +169,7 @@ const sketchpad = new Atrament({ fill });
 
 - Atrament models its output as a set of independent _strokes_. Only one stroke can be drawn at a time.
 - Each stroke consists of a list of _segments_, which correspond to all the pointer positions recorded during drawing.
-- Each segment consists of a _point_ which contains `x` and `y` coordinates, and a `time` which is the number of milliseconds since the stroke began, until the segment was drawn.
+- Each segment consists of a _point_ which contains `x` and `y` coordinates, a `time` which is the number of milliseconds since the stroke began, until the segment was drawn, and a `pressure` value (0.-1.) which is either the recorded stylus pressure or 0.5 if no pressure data is available.
 - Each stroke also contains information about the drawing settings at the time of drawing (see Events > Stroke recording).
 
 
@@ -169,7 +193,8 @@ sketchpad.addEventListener('clean', () => console.info(sketchpad.dirty));
 
 ### Stroke start/end
 
-These events don't provide any data - they just inform that a stroke has started/finished.
+These events inform that a stroke has started/finished. They also return `x` and `y` properties
+denoting where on the canvas the event occurred.
 
 ```js
 sketchpad.addEventListener('strokestart', () => console.info('strokestart'));
@@ -186,6 +211,17 @@ sketchpad.addEventListener('fillstart', ({ x, y }) =>
   console.info(`fillstart ${x} ${y}`),
 );
 sketchpad.addEventListener('fillend', () => console.info('fillend'));
+```
+
+### Pointer down/up
+
+Sometimes you might want to tweak Atrament's settings as soon as the user begins/ends a stroke,
+but before Atrament actually draws anything. The `pointerdown/up` events allow you to do this.
+The argument is the `PointerEvent` itself.
+
+```js
+sketchpad.addEventListener('pointerdown', (event) => console.info('pointerdown', event));
+sketchpad.addEventListener('pointerup', (event) => console.info('pointerup', event));
 ```
 
 ### Stroke recording
@@ -205,6 +241,7 @@ sketchpad.addEventListener('strokerecorded', ({ stroke }) =>
     {
       point: { x, y },
       time,
+      pressure,
     }
   ],
   color,
@@ -251,12 +288,12 @@ atrament.beginStroke(firstPoint.x, firstPoint.y);
 
 let prevPoint = firstPoint;
 while (segments.length > 0) {
-  const point = segments.shift().point;
+  const segment = segments.shift();
 
   // the `draw` method accepts the current real coordinates
   // (i. e. actual cursor position), and the previous processed (filtered)
   // position. It returns an object with the current processed position.
-  const { x, y } = atrament.draw(point.x, point.y, prevPoint.x, prevPoint.y);
+  const { x, y } = atrament.draw(segment.point.x, segment.point.y, prevPoint.x, prevPoint.y, segment.pressure);
 
   // the processed position is the one where the line is actually drawn to
   // so we have to store it and pass it to `draw` in the next step

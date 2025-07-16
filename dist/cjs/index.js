@@ -59,12 +59,11 @@ const lineDistance = (x1, y1, x2, y2) => {
 };
 /* eslint-enable no-param-reassign */
 
-const pointerEventHandler = (handler) => (event) => {
-  // Ignore pointers such as additional touches on a multi-touch screen,
-  // as well as all mouse buttons other than the left button.
-  // `PointerEvent.button` is -1 if no button is pressed, but also for `pointermove` events,
-  // and this value is relevant to us. See https://w3c.github.io/pointerevents/#the-button-property
-  if (!event.isPrimary || event.button > 0) {
+const pointerEventHandler = (handler, config) => (event) => {
+  // Ignore pointers such as additional touches on a multi-touch screen
+  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)
+    || (config.ignoreModifiers
+      && (event.altKey || event.ctrlKey || event.metaKey || event.button === 1))) {
     return;
   }
 
@@ -80,10 +79,10 @@ const setupPointerEvents = ({
   move,
   down,
   up,
-}) => {
-  const moveListener = pointerEventHandler(move);
-  const downListener = pointerEventHandler(down);
-  const upListener = pointerEventHandler(up);
+}, config) => {
+  const moveListener = pointerEventHandler(move, config);
+  const downListener = pointerEventHandler(down, config);
+  const upListener = pointerEventHandler(up, config);
 
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);
@@ -109,21 +108,30 @@ const WEIGHT_SPREAD = 30;
 const INITIAL_THICKNESS = 2;
 const DEFAULT_PRESSURE = 0.5;
 
-const MODE_DRAW = Symbol('atrament mode - draw');
-const MODE_ERASE = Symbol('atrament mode - erase');
-const MODE_FILL = Symbol('atrament mode - fill');
-const MODE_DISABLED = Symbol('atrament mode - disabled');
+const scale = (value, smin, smax, tmin, tmax) => ((value - smin) * (tmax - tmin))
+  / (smax - smin) + tmin;
+
+// eslint-disable-next-line import/no-unresolved
+
+const MODE_DRAW = 'draw';
+const MODE_ERASE = 'erase';
+const MODE_FILL = 'fill';
+const MODE_DISABLED = 'disabled';
 
 const pathDrawingModes = [MODE_DRAW, MODE_ERASE];
-const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode'];
+const configKeys = ['weight', 'smoothing', 'adaptiveStroke', 'mode', 'secondaryMouseButton', 'ignoreModifiers', 'pressureLow', 'pressureHigh', 'pressureSmoothing'];
 
 class Atrament extends AtramentEventTarget {
   adaptiveStroke = true;
   canvas;
   recordStrokes = false;
-  resolution = window.devicePixelRatio;
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
+  secondaryMouseButton = false;
+  ignoreModifiers = false;
+  pressureLow = 0;
+  pressureHigh = 2;
+  pressureSmoothing = 0.3;
 
   #context;
   #dirty = false;
@@ -132,7 +140,7 @@ class Atrament extends AtramentEventTarget {
   #fillWorker = null;
   #mode = MODE_DRAW;
   #mouse = new Mouse();
-  #pressure = DEFAULT_PRESSURE;
+  #previousPressure = DEFAULT_PRESSURE;
   #removePointerEventListeners;
   #strokeMemory = [];
   #thickness = INITIAL_THICKNESS;
@@ -154,11 +162,17 @@ class Atrament extends AtramentEventTarget {
       move: this.#pointerMove.bind(this),
       down: this.#pointerDown.bind(this),
       up: this.#pointerUp.bind(this),
-    });
+    }, config);
 
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
         this[key] = config[key];
+      }
+    });
+
+    this.canvas.addEventListener('contextmenu', (event) => {
+      if (this.secondaryMouseButton && this.mode !== MODE_DISABLED) {
+        event.preventDefault();
       }
     });
   }
@@ -204,8 +218,9 @@ class Atrament extends AtramentEventTarget {
    * @param {number} y current Y coordinate
    * @param {number} previousX previous X coordinate
    * @param {number} previousY previous Y coordinate
+   * @param {number} pressure the pointer pressure at this point (defaults to 0.5)
    */
-  draw(x, y, previousX, previousY) {
+  draw(x, y, previousX, previousY, pressure = DEFAULT_PRESSURE) {
     // If the user clicks (or double clicks) without moving the mouse,
     // previousX/Y will be 0. In this case, we don't want to draw a line from (0,0) to (x,y),
     // but a "point" from (x,y) to (x,y).
@@ -217,19 +232,23 @@ class Atrament extends AtramentEventTarget {
     const procX = x - (x - prevX) * smoothingFactor;
     const procY = y - (y - prevY) * smoothingFactor;
 
+    // low-pass filtering pressure to avoid jagged stroke ends
+    // where stylus pressure tends to be very low
+    const smoothedPressure = pressure - (pressure - this.#previousPressure) * this.pressureSmoothing;
+
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);
 
     // Adaptive stroke allows an effect where thickness changes
     // over the course of the stroke. This simulates the variation in
     // ink discharge of a physical pen.
-    if (this.adaptiveStroke) {
-      // Thickness range is inversely proportional to pressure,
-      // because with higher pressure, the effect of distance
-      // on the thickness ratio should be greater.
-      const range = LINE_THICKNESS_RANGE * (1 - this.#pressure);
-      const ratio = (dist - MIN_LINE_THICKNESS) / range;
+    // For pressure-sensitive devices, there will be natural variation,
+    // so we don't apply adaptive stroke.
+    if (this.adaptiveStroke && pressure === DEFAULT_PRESSURE) {
+      const ratio = (dist - MIN_LINE_THICKNESS) / LINE_THICKNESS_RANGE;
+      // Calculate target thickness based on weight settings.
       const targetThickness = ratio * (this.#maxWeight - this.#weight) + this.#weight;
+
       // approach the target gradually
       if (this.#thickness > targetThickness) {
         this.#thickness -= THICKNESS_INCREMENT;
@@ -237,15 +256,19 @@ class Atrament extends AtramentEventTarget {
         this.#thickness += THICKNESS_INCREMENT;
       }
     } else {
-      this.#thickness = this.#weight;
+      this.#thickness = this.#getWeightWithPressure(smoothedPressure);
     }
 
-    this.#context.lineWidth = this.#thickness;
+    // Adjust thickness to intrinsic canvas size;
+    this.#context.lineWidth = (this.#thickness / this.canvas.offsetWidth) * this.canvas.width;
+
+    const segmentStart = this.#extrinsicToIntrinsicPoint(prevX, prevY);
+    const segmentEnd = this.#extrinsicToIntrinsicPoint(procX, procY);
 
     // Draw the segment using quad interpolation.
     this.#context.beginPath();
-    this.#context.moveTo(prevX, prevY);
-    this.#context.quadraticCurveTo(prevX, prevY, procX, procY);
+    this.#context.moveTo(...segmentStart);
+    this.#context.quadraticCurveTo(...segmentStart, ...segmentEnd);
     this.#context.closePath();
     this.#context.stroke();
 
@@ -253,6 +276,7 @@ class Atrament extends AtramentEventTarget {
       this.#strokeMemory.push({
         point: new Point(x, y),
         time: performance.now() - this.strokeTimestamp,
+        pressure,
       });
 
       this.dispatchEvent('segmentdrawn', { stroke: this.currentStroke });
@@ -374,6 +398,26 @@ class Atrament extends AtramentEventTarget {
     return this.#dirty;
   }
 
+  // Translates between extrinsic (DOM) coordinates and intrinsic (bitmap) coordinates.
+  // Returns an array for easy passing into argument lists of CanvasRenderingContext2D methods.
+  #extrinsicToIntrinsicPoint(offsetX, offsetY) {
+    const x = (offsetX / this.canvas.offsetWidth) * this.canvas.width;
+    const y = (offsetY / this.canvas.offsetHeight) * this.canvas.height;
+    return [x, y];
+  }
+
+  #getWeightWithPressure(pressure) {
+    if (pressure === 0.5) {
+      return this.#weight;
+    }
+
+    if (pressure < 0.5) {
+      return this.#weight * scale(pressure, 0, 0.5, this.pressureLow, 1);
+    }
+
+    return this.#weight * scale(pressure, 0.5, 1, 1, this.pressureHigh);
+  }
+
   static #setupCanvas(selector, config) {
     let canvas;
     // get canvas element
@@ -381,11 +425,8 @@ class Atrament extends AtramentEventTarget {
     else if (typeof selector === 'string') canvas = document.querySelector(selector);
     else throw new Error(`atrament: can't look for canvas based on '${selector}'`);
     if (!canvas) throw new Error('atrament: canvas not found');
-    // since this method is static, we have to add a fallback to the resolution here
-    // TODO: see if these methods really have to be static.
-    const scale = config.resolution || window.devicePixelRatio;
-    canvas.width = (config.width || canvas.width) * scale;
-    canvas.height = (config.height || canvas.height) * scale;
+    canvas.width = config.width || canvas.width;
+    canvas.height = config.height || canvas.height;
     canvas.style.touchAction = 'none';
 
     return canvas;
@@ -393,10 +434,6 @@ class Atrament extends AtramentEventTarget {
 
   static #setupContext(canvas, config) {
     const context = canvas.getContext('2d');
-    // since this method is static, we have to add a fallback to the resolution here
-    // TODO: see if these methods really have to be static.
-    const scale = config.resolution || window.devicePixelRatio;
-    context.scale(scale, scale);
     context.globalCompositeOperation = 'source-over';
     context.globalAlpha = 1;
     context.strokeStyle = config.color || 'rgba(0,0,0,1)';
@@ -419,16 +456,12 @@ class Atrament extends AtramentEventTarget {
           y,
           this.#mouse.previous.x,
           this.#mouse.previous.y,
+          position.pressure,
         );
 
         this.#mouse.set(x, y);
         this.#mouse.previous.set(newX, newY);
-        // Android Chrome sets pressure to constant 1 by default,
-        // which would break the algorithm.
-        // We also handle the case when pressure is 0.
-        this.#pressure = position.pressure === 1
-          ? DEFAULT_PRESSURE
-          : position.pressure || DEFAULT_PRESSURE;
+        this.#previousPressure = position.pressure;
       } else {
         this.#mouse.set(x, y);
         this.#mouse.previous.set(x, y);
@@ -437,7 +470,8 @@ class Atrament extends AtramentEventTarget {
   }
 
   #pointerDown(event) {
-    // if we are filling - fill and return
+    this.dispatchEvent('pointerdown', event);
+
     if (this.mode === MODE_FILL) {
       this.#fill();
       return;
@@ -446,11 +480,14 @@ class Atrament extends AtramentEventTarget {
     this.#mouse.down = true;
     // update position just in case
     this.#pointerMove(event);
+    this.#previousPressure = event.pressure;
 
     this.beginStroke(this.#mouse.previous.x, this.#mouse.previous.y);
   }
 
   #pointerUp(event) {
+    this.dispatchEvent('pointerup', event);
+
     if (this.#mode === MODE_FILL) {
       return;
     }
@@ -468,6 +505,7 @@ class Atrament extends AtramentEventTarget {
         this.#mouse.y,
         this.#mouse.previous.x,
         this.#mouse.previous.y,
+        this.#previousPressure,
       );
     }
 
@@ -512,8 +550,8 @@ class Atrament extends AtramentEventTarget {
       width: this.canvas.width,
       height: this.canvas.height,
       startColor,
-      startX: x * this.resolution,
-      startY: y * this.resolution,
+      startX: x,
+      startY: y,
     };
 
     if (!this.#filling) {

@@ -29,6 +29,10 @@
     ".": {
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
+    },
+    "./fill": {
+      "import": "./dist/esm/fill.js",
+      "require": "./dist/cjs/fill.js"
     }
   },
   "dependencies": {

@@ -111,8 +111,6 @@ const DEFAULT_PRESSURE = 0.5;
 const scale = (value, smin, smax, tmin, tmax) => ((value - smin) * (tmax - tmin))
   / (smax - smin) + tmin;
 
-// eslint-disable-next-line import/no-unresolved
-
 const MODE_DRAW = 'draw';
 const MODE_ERASE = 'erase';
 const MODE_FILL = 'fill';

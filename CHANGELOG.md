@@ -1,3 +1,23 @@
+# v5.0.0
+
+## Breaking API changes
+
+- Atrament does not include the fill Worker within the main bundle anymore. This is so applications that don't require fill mode
+benefit from an approx. 60% smaller import size. The fill module can be imported separately and injected into Atrament via the constructor.
+- Atrament now maps the pointer coordinates (pixels relative to the `<canvas>` element) to unitless fractions of the intrinsic canvas size. This eliminates the need to consider things like `devicePixelRatio`, since the coordinates are independent of screen pixel density. The `resolution` config option has been removed.
+
+## Drawing experience changes
+
+- pressure sensitivity has been reworked to have much more impact on the stroke, and new config options have been added to tweak the pressure mapping. The options are `pressureLow`, `pressureHigh` and `pressureSmoothing` - see README for more info
+
+## Other changes
+
+- there is now a `secondaryEraser` config option, which allows the secondary (e.g. right) mouse button to be used as an instant eraser without changing modes
+- recorded strokes now also include pressure information so they can be reproduced correctly
+- `strokestart` and `strokeend` now also return x/y coordinates
+- a new config option `ignoreModifiers` makes Atrament ignore pointer events if any modifier keys are pressed. This is useful if you'd like to use pointer events with modifiers for other things than drawing (e.g. Ctrl+Click+Drag to pan around the canvas).
+
+
 # v4.0.0
 
 ## Breaking API changes

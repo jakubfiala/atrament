@@ -64,7 +64,7 @@ export default class Atrament extends AtramentEventTarget {
       move: this.#pointerMove.bind(this),
       down: this.#pointerDown.bind(this),
       up: this.#pointerUp.bind(this),
-    }, config);
+    }, this);
 
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
@@ -136,7 +136,8 @@ export default class Atrament extends AtramentEventTarget {
 
     // low-pass filtering pressure to avoid jagged stroke ends
     // where stylus pressure tends to be very low
-    const smoothedPressure = pressure - (pressure - this.#previousPressure) * this.pressureSmoothing;
+    const pressureDiff = pressure - this.#previousPressure;
+    const smoothedPressure = pressure - pressureDiff * this.pressureSmoothing;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);

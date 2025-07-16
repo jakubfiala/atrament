@@ -67,13 +67,12 @@ const canvas = document.querySelector('#sketchpad');
 const sketchpad = new Atrament(canvas);
 ```
 
-- you can also pass the width, height, resolution and default colour to the constructor (see [note on high DPI screens](#high-dpi-screens))
+- you can also pass the width, height and default colour to the constructor (see [note on high DPI screens](#high-dpi-screens))
 
 ```js
 const sketchpad = new Atrament(canvas, {
   width: 500,
   height: 500,
-  resolution: 2, // the intrinsic canvas size will be 2*500 x 2*500
   color: 'orange',
 });
 ```
@@ -141,10 +140,16 @@ sketchpad.pressureHigh = 2;
 sketchpad.pressureSmoothing = 0.4;
 ```
 
-- secondary mouse/touchpad button clicks can be used as a quick eraser. `false` by default.
+- the `secondaryMouseButton` option enables drawing using the secondary (right) mouse button - e.g. as a quick eraser. This  `false` by default.
 
 ```js
-sketchpad.secondaryEraser = true;
+sketchpad.secondaryMouseButton = true;
+```
+
+- ignore strokes with modifier keys pressed (e.g. Alt/Ctrl/Cmd/Windows key). `false` by default.
+
+```js
+sketchpad.ignoreModifiers = true;
 ```
 
 - record stroke data (enables the `strokerecorded` event). `false` by default.
@@ -155,7 +160,7 @@ sketchpad.recordStrokes = true;
 
 ## Fill mode
 
-From version 5.0.0, Atrament does not bundle the fill Worker within the main bundle. This is so applications that don't require fill mode
+From version 5.0.0, Atrament will not bundle the fill Worker within the main bundle. This is so applications that don't require fill mode
 benefit from an approx. 60% smaller import size. The fill module can be imported separately and injected into Atrament via the constructor:
 
 ```js
@@ -171,13 +176,6 @@ const sketchpad = new Atrament({ fill });
 - Each stroke consists of a list of _segments_, which correspond to all the pointer positions recorded during drawing.
 - Each segment consists of a _point_ which contains `x` and `y` coordinates, a `time` which is the number of milliseconds since the stroke began, until the segment was drawn, and a `pressure` value (0.-1.) which is either the recorded stylus pressure or 0.5 if no pressure data is available.
 - Each stroke also contains information about the drawing settings at the time of drawing (see Events > Stroke recording).
-
-
-## High DPI screens
-
-To make drawings look sharp on high DPI screens, Atrament scales its drawing context by `window.devicePixelRatio` since v4.0.0. This means when you set a custom `width` or `height`, you should also multiply the CSS pixel values by `devicePixelRatio`. The values accepted by `draw()` and included in stroke events are always in CSS pixels.
-
-As of Atrament v4.5.0, the `resolution` config option allows overriding the DPR scaling - this is useful if, for instance, you'd like to export the image at a higher resolution than displayed.
 
 ## Events
 

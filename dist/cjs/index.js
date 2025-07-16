@@ -59,10 +59,10 @@ const lineDistance = (x1, y1, x2, y2) => {
 };
 /* eslint-enable no-param-reassign */
 
-const pointerEventHandler = (handler, config) => (event) => {
+const pointerEventHandler = (handler, instance) => (event) => {
   // Ignore pointers such as additional touches on a multi-touch screen
-  if (!event.isPrimary || (!config.secondaryMouseButton && event.button > 0)
-    || (config.ignoreModifiers
+  if (!event.isPrimary || (!instance.secondaryMouseButton && event.button > 0)
+    || (instance.ignoreModifiers
       && (event.altKey || event.ctrlKey || event.metaKey || event.button === 1))) {
     return;
   }
@@ -79,10 +79,10 @@ const setupPointerEvents = ({
   move,
   down,
   up,
-}, config) => {
-  const moveListener = pointerEventHandler(move, config);
-  const downListener = pointerEventHandler(down, config);
-  const upListener = pointerEventHandler(up, config);
+}, instance) => {
+  const moveListener = pointerEventHandler(move, instance);
+  const downListener = pointerEventHandler(down, instance);
+  const upListener = pointerEventHandler(up, instance);
 
   canvas.addEventListener('pointermove', moveListener);
   canvas.addEventListener('pointerdown', downListener);
@@ -160,7 +160,7 @@ class Atrament extends AtramentEventTarget {
       move: this.#pointerMove.bind(this),
       down: this.#pointerDown.bind(this),
       up: this.#pointerUp.bind(this),
-    }, config);
+    }, this);
 
     configKeys.forEach((key) => {
       if (config[key] !== undefined) {
@@ -232,7 +232,8 @@ class Atrament extends AtramentEventTarget {
 
     // low-pass filtering pressure to avoid jagged stroke ends
     // where stylus pressure tends to be very low
-    const smoothedPressure = pressure - (pressure - this.#previousPressure) * this.pressureSmoothing;
+    const pressureDiff = pressure - this.#previousPressure;
+    const smoothedPressure = pressure - pressureDiff * this.pressureSmoothing;
 
     // recalculate distance from previous point, this time relative to the smoothed coords
     const dist = lineDistance(procX, procY, prevX, prevY);

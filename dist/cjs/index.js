@@ -126,6 +126,7 @@ class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
+  contextMenu = false;
   ignoreModifiers = false;
   pressureLow = 0;
   pressureHigh = 2;
@@ -171,6 +172,8 @@ class Atrament extends AtramentEventTarget {
     this.canvas.addEventListener('contextmenu', (event) => {
       if (this.secondaryMouseButton && this.mode !== MODE_DISABLED) {
         event.preventDefault();
+      } else {
+        this.contextMenu = true;
       }
     });
   }
@@ -450,6 +453,10 @@ class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
+        if (this.contextMenu) {
+          this.#mouse.previous.set(x, y);
+          this.contextMenu = false;
+        }
         const { x: newX, y: newY } = this.draw(
           x,
           y,

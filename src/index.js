@@ -30,13 +30,13 @@ export default class Atrament extends AtramentEventTarget {
   smoothing = INITIAL_SMOOTHING_FACTOR;
   thickness = INITIAL_THICKNESS;
   secondaryMouseButton = false;
-  contextMenu = false;
   ignoreModifiers = false;
   pressureLow = 0;
   pressureHigh = 2;
   pressureSmoothing = 0.3;
 
   #context;
+  #contextMenu = false;
   #dirty = false;
   #filling = false;
   #fillStack = [];
@@ -77,7 +77,10 @@ export default class Atrament extends AtramentEventTarget {
       if (this.secondaryMouseButton && this.mode !== MODE_DISABLED) {
         event.preventDefault();
       } else {
-        this.contextMenu = true;
+        // On certain browsers/devices, left-clicking away from the contextmenu
+        // seems to already trigger pointermove, so this way we prevent the coordinates
+        // of that pointermove from being drawn.
+        this.#contextMenu = true;
       }
     });
   }
@@ -357,9 +360,9 @@ export default class Atrament extends AtramentEventTarget {
 
       // draw if we should draw
       if (this.#mouse.down && pathDrawingModes.includes(this.#mode)) {
-        if (this.contextMenu) {
+        if (this.#contextMenu) {
           this.#mouse.previous.set(x, y);
-          this.contextMenu = false;
+          this.#contextMenu = false;
         }
         const { x: newX, y: newY } = this.draw(
           x,
